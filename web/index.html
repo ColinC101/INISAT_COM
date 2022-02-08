@@ -1,0 +1,147 @@
+<!DOCTYPE HTML><html>
+<html lang="fr"> 
+<head>
+  <title>INISAT Interface</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="stylesheet" href="css/all.css">
+</head>
+  
+  
+<body id="indx" onunload="fermPage()" >
+
+  <header class="Titre_principal_pages">
+    <img class= column src="easyspace.jpg" alt="logo INISAT" style="height:125px; border-radius: 50% ">
+    <span style="font-size: 60px; ">INISAT</span>
+    <img class= column2 src="CNES.jpg" alt="logo INISAT" style="height:120px; border-radius: 50% ">
+    <br>
+    <img class= column3 src="CNES2.jpg" alt="logo INISAT" style="height:18px; border-radius: 5% ">
+    
+ 
+ 
+   
+    
+    
+  </header>
+  <div class="menu">
+  
+
+    <div class="grid-Menu-container" >
+      <div id="m1" class="grid-Menu-item"  style="background-color:rgb(250, 121, 98)">Tableau de bord</div>
+      <div id="m2" class="grid-Menu-item" onclick="menuGraph()" onmouseover="mOver2(this)" onmouseout="mOut2(this)" >Visualisation Graphique</div>
+      <div id="m3" class="grid-Menu-item" onclick="menuConsole()"  onmouseover="mOver3(this)" onmouseout="mOut3(this)" >Mode Console</div>
+      <div id="m4" class="grid-Menu-item" onclick="menuHardware()"  onmouseover="mOver4(this)" onmouseout="mOut4(this)" >Controle Hardware</div>
+      <div id="m5" class="grid-Menu-item" onclick="menuTele()"  onmouseover="mOver5(this)" onmouseout="mOut5(this)" >Télécommandes</div>
+
+    </div>
+  </div>
+ 
+  
+  <main>
+
+  <div class="contenu">
+
+
+
+    <div class="card2">
+      <p><span class="reading3">Interface de supervision en temps r&eacuteel de</span></p>
+      <p><span class="reading3">l'INISAT 2U</span></p>
+   </div>
+
+    <div class="cards">
+      <div class="card">
+        
+          <p class="card-title"><i class="fas fa-battery-half" style="color:#f88778;" ></i> Batteries</p> 
+          <p><span class="reading">V<sub>bat</sub>: <span id="var1"></span> V</span></p>
+          <p><span class="reading">I<sub>charge</sub>: <span id="var2"></span> A</span></p>
+          <p><span class="reading">T<sub>bat</sub>: <span id="var3"></span> &deg;C</span></p>
+        </div>
+        <div class="card">
+        <p class="card-title"><i class="fas fa-tachometer-alt" style="color:#4d8be8;"></i> Accelération</p>
+        <p><span class="reading">X: <span id="var4"></span> ms<sup>-2</span></p>
+        <p><span class="reading">Y: <span id="var5"></span> ms<sup>-2</span></p>
+        <p><span class="reading">Z: <span id="var6"></span> ms<sup>-2</span></p>
+      </div>
+      
+      <div class="card">
+        <p class="card-title"><i class="fas fa-location-arrow" style="color:#dd90d7;"></i> Vitesse Angulaire</p>
+        <p><span class="reading">X: <span id="var7"></span> rads<sup>-1</span></p>
+        <p><span class="reading">Y: <span id="var8"></span> rads<sup>-1</span></p>
+        <p><span class="reading">Z: <span id="var9"></span> rads<sup>-1</span></p>
+      </div>
+      <div class="card">
+        <p class="card-title"><i class="fas fa-magnet" style="color:#126fae;"></i>  Champs Magnétique</p>
+        <p><span class="reading">X: <span id="var10"></span>  &#181T</span></p>
+        <p><span class="reading">Y: <span id="var11"></span>  &#181T</span></p>
+        <p><span class="reading">Z: <span id="var12"></span>  &#181T</span></p>
+      </div>
+      <div class="card">
+        <p class="card-title"><i class="fas fa-globe-europe" style="color:#54bd71;"></i> Vecteur Gravité</p>
+        <p><span class="reading">X: <span id="var13"></span> ms<sup>-2</sup></span></p>
+        <p><span class="reading">Y: <span id="var14"></span> ms<sup>-2</sup></span></p>
+        <p><span class="reading">Z: <span id="var15"></span> ms<sup>-2</sup></span></p>
+      </div>
+     
+      
+      <div class="card">
+        <p class="card-title"><i class="far fa-compass" style="color:#e8984d;" ></i> Vecteur Euler</p>
+        <p><span class="reading">Roulis: <span id="var16"></span> &deg;</span></p>
+        <p><span class="reading">Tangage: <span id="var17"></span> &deg;</span></p>
+        <p><span class="reading">Lacet: <span id="var18"></span> &deg;</span></p>
+      </div>
+      
+    </div>  
+      
+    <div class="cards">
+      <div class="card">
+        <p class="card-title"><i class="fas fa-temperature-high" style="color:#ebce50;"></i> Température</p>
+        <p><span class="reading"><span id="var19"></span> &deg;C</span></p>
+      </div>
+      <div class="card">
+        <p class="card-title"><i class="fas fa-ruler" style="color:#e8694d;"></i> Altitude</p>
+        <p><span class="reading"><span id="var20"></span> m</span></p>
+      </div>
+      <div class="card">
+        <p class="card-title"><i class="fas fa-angle-double-down" style="color:#7c610f;"></i> Préssion</p>
+        <p><span class="reading"><span id="var21"></span> Pa</span></p>
+      </div>
+    </div>
+
+    <div class="cards" >
+        
+        <p><span class="reading2">Utilisez le mode console afin de consulter les param&egravetres d&eacutetaill&eacutes du satellite</span></p>
+    
+        </div>
+<!--
+<div class="card3">
+      
+<p><span class="reading2">Arréter la supervision et fermer l'interface :</span></p>
+          
+    
+<input type="button" class="button0" value="Fermer" onclick="fermePage()">
+  
+</div>
+-->
+
+  </div>    
+ 
+     <div>
+
+        <a href="https://inisat.fr/" target="_blank">      
+    <!--  <img src="logo-INISAT.jpg" alt="logo INISAT" width="290" height="130"> -->  
+     </a>
+        <p>Pour plus d'informations veuillez visiter le site d'Easy-Space sur : <b><a href="https://easy-space.fr/" target="_blank">https://easy-space.fr/</a></b></p>
+        <p>ainsi que le site du projet INISAT sur : <b><a href="https://inisat.fr/" target="_blank">https://inisat.fr/</a></b></p>
+
+    </div>
+
+  
+ </main>
+
+<script src="js-index.js"></script>
+
+
+</body>
+</html>
+

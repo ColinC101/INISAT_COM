@@ -1,0 +1,74 @@
+<!DOCTYPE HTML><html>
+<html lang="fr"> 
+<head>
+  <title>Controle hardware</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="stylesheet" href="css/all.css">
+</head>
+  
+  
+<body id="cont">
+
+  <header class="Titre_principal_pages">
+    <h1> INISAT </h1>
+
+    
+  </header>
+  <!--
+  <div class="menu">
+    <div class="grid-Menu-container" >
+      <div id="m1" class="grid-Menu-item" onclick="menuIndex()" onmouseover="mOver1(this)" onmouseout="mOut1(this)">Tableau de bord</div>
+      <div id="m2" class="grid-Menu-item" onclick="menuGraph()" onmouseover="mOver2(this)" onmouseout="mOut2(this)" >Visualisation Graphique</div></a> 
+      <div id="m3" class="grid-Menu-item" onclick="menuConsole()"  onmouseover="mOver3(this)" onmouseout="mOut3(this)" >Mode Console</div></a>
+      <div id="m4" class="grid-Menu-item" style="background-color:rgb(250, 121, 98)" >Controle Hardware</div></a>
+      <div id="m5" class="grid-Menu-item" onclick="menuTele()"  onmouseover="mOver5(this)" onmouseout="mOut5(this)" >Télécommandes</div></a>
+    </div>
+  </div>
+-->
+  <main>
+
+  <div class="contenu">
+
+    <p class="reading3">CONTROLE HARDWARE</p>
+
+    <div class="card3">
+
+      <p><span class="reading2">Activer ou d&eacutesactiver la liaison LORA :</span></p>
+      <!--<label class="switch"><input type="checkbox" id="Lora" onchange="toggleCheckbox(this)" <span id="checkLora"></span>><span class="slider"></span></label> -->
+      %ETATLORA%
+      <p><span id = "lora_"></span></p>
+      <p><span class="reading2">Activer ou d&eacutesactiver la cam&eacutera embarqu&eacutee :</span></p>
+      %ETATCAM%
+      <p><span id = "camera_"></span></p>
+<!--
+      <p><span class="reading2">Activer ou d&eacutesactiver le capteur 9-axes :</span></p>
+      %ETATCAP9%
+-->      
+    </div>
+
+
+    <div>
+
+  
+
+     <div>
+
+        <a href="https://inisat.fr/" target="_blank">      
+        <img src="logo-INISAT.jpg" alt="logo INISAT" width="290" height="130">
+     </a>
+     <p>Pour plus d'informations veuillez visiter le site d'Easy-Space sur : <b><a href="https://easy-space.fr/" target="_blank">https://easy-space.fr/</a></b></p>
+     <p>ainsi que le site du projet INISAT sur : <b><a href="https://inisat.fr/" target="_blank">https://inisat.fr/</a></b></p> 
+    </div>
+
+
+
+    </main>
+</div> 
+<script src="js-controle.js"></script>
+
+
+</body>
+</html>
+

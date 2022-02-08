@@ -1,0 +1,140 @@
+<!DOCTYPE HTML><html>
+<html lang="fr"> 
+<head>
+  <title>Mode console</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="stylesheet" href="css/all.css">
+  <script src="FileSaver.js"></script>
+</head>
+
+
+  
+<body id="cons">
+
+  <header class="Titre_principal_pages">
+    <h1> INISAT </h1>
+
+    
+  </header>
+  <!--
+  <div class="menu">
+    <div class="grid-Menu-container" >
+      <div id="m1" class="grid-Menu-item" onclick="menuIndex()" onmouseover="mOver1(this)" onmouseout="mOut1(this)">Tableau de bord</div>
+      <div id="m2" class="grid-Menu-item" onclick="menuGraph()" onmouseover="mOver2(this)" onmouseout="mOut2(this)" >Visualisation Graphique</div>
+      <div id="m3" class="grid-Menu-item" style="background-color:rgb(250, 121, 98)" >Mode Console</div>
+      <div id="m4" class="grid-Menu-item" onclick="menuHardware()"  onmouseover="mOver4(this)" onmouseout="mOut4(this)" >Controle Hardware</div>
+      <div id="m5" class="grid-Menu-item" onclick="menuTele()"  onmouseover="mOver5(this)" onmouseout="mOut5(this)" >Télécommandes</div>
+  
+    </div>
+  </div>
+-->
+  <main>
+
+  <div class="contenu">
+
+    <p class="reading3">CONFIGURATION CONSOLE</p>
+
+    
+
+    
+  <!-- 
+
+    <div style="text-align: center;">
+        <p><span style="font-weight: bold; color:slategray">Pour ouvrir la console :</span></p>
+        <p><span style="font-weight: bold; color:tomato"> Chrome : </span>Ctrl + Shift + J (Windows / Linux), Cmd + Opt + J (Mac OS)</p>
+        <p><span style="font-weight: bold; color:tomato">Firefox : </span>Ctrl + Shift + K (Windows / Linux), Cmd + Opt + K (Mac OS)</p>
+        <p><span style="font-weight: bold; color:tomato">Internet Explorer : </span>F12 puis choisir l'onglet "Console"</p>
+        <p><span style="font-weight: bold; color:tomato">Safari : </span>Ouvrir "Console" dans le menu "Web Inspector"</p>
+      </div>
+
+-->
+
+    <div class="card3">
+      
+    <p><span class="reading2">Période d'acquisition des données (en secondes) :</span></p>
+    
+      <form name="myForm0" onsubmit="validateForm0(); return false">
+      <!-- <label for="cars">Any :</label> -->
+      <input type="number" id="Ctemps" name="Cons_Temps" min="5" max="3600" style="width:110px ; font-size: 14px; padding: 8px 4px; cursor: pointer; background-color:rgb(233, 233, 233);  border-radius: 4px; border-color:rgba(25, 25, 25); border-width:thin;">
+      <input type="button" class="button0" value="Envoyer" id="Sub0" onclick="validateForm0()">
+      <p><span id = "intv_"></span></p>
+    </form> 
+  
+
+    
+    </div>
+     
+
+
+
+
+
+          <div class="card3">
+      
+          </form> <br>
+          <p><span class="reading2">Selectionner les modules à superviser sur la console :</span></p>
+          <form name="consForm" id="cons_F" >
+      
+           <div class="console-grid-container" >
+         
+             <div class="console-grid-item"><input type="checkbox" id="eps_" name="consol_conf"><label for="eps_"> Energie</label></div>
+             <div class="console-grid-item"><input type="checkbox" id="tp_" name="consol_conf" ><label for="tp_"> Température</label></div>
+             <div class="console-grid-item"><input type="checkbox" id="al_" name="consol_conf" ><label for="al_"> Altitude</label></div>
+             <div class="console-grid-item"><input type="checkbox" id="prss_" name="consol_conf" ><label for="prss_"> Pression</label></div>
+             <div class="console-grid-item"><input type="checkbox" id="eul_" name="consol_conf"><label for="eul_"> Vecteur Euler</label></div>
+             <div class="console-grid-item"><input type="checkbox" id="quat_" name="consol_conf"><label for="quat_"> Quaternion</label></div>
+             <div class="console-grid-item"><input type="checkbox" id="vang_" name="consol_conf"><label for="vang_"> Vitesse Angulaire</label></div>  
+             <div class="console-grid-item"><input type="checkbox" id="acc_" name="consol_conf"><label for="acc_"> Accelération</label></div>
+             <div class="console-grid-item"><input type="checkbox" id="mag_" name="consol_conf"><label for="mag_"> Champs Magnétique</label></div>
+             <div class="console-grid-item"><input type="checkbox" id="accl_" name="consol_conf"><label for="accl_"> Accelération Linéaire</label></div>
+             <div class="console-grid-item"><input type="checkbox" id="vgrv_" name="consol_conf"><label for="vgrv_"> Vecteur Gravité</label></div> 
+             <div class="console-grid-item"><input type="checkbox" id="lum_" name="consol_conf"><label for="lum_"> Luminance</label></div> 
+             <div class="console-grid-item"><input type="checkbox" id="gnss_" name="consol_conf"><label for="gnss_"> GNSS</label></div> 
+             <div class="console-grid-item"><input type="checkbox" id="nmoa_" name="consol_conf"><label for="nmoa_"> GNSS-NMEA</label></div>
+      
+      
+           </div>
+           <input type="button" class="button1" onclick='selects()' value="Tout"/>  
+           <input type="button" class="button1" onclick='deSelect()' value="Effacer"/>  <br>  <br>  <br>  
+           
+           <input type="button" class="button0" value="Démarrer" id="cons_M" onclick="validateconsForm()">
+            </form> 
+    
+            </div>
+            
+            <div class="card3">
+              <p class="card-title2">AUTOTEST</p>
+              <p><span class="reading2">Test des différents modules du satellite :</span></p>
+              <input type="button" class="button0" value="Démarrer" onclick="autoTest()">
+                <p><span id = "auto_"></span></p>
+          
+            
+              
+              
+              </div>
+      
+  </div>
+
+
+  
+
+     <div>
+
+        <a href="https://inisat.fr/" target="_blank">      
+        <img src="logo-INISAT.jpg" alt="logo INISAT" width="290" height="130">
+     </a>
+     <p>Pour plus d'informations veuillez visiter le site d'Easy-Space sur : <b><a href="https://easy-space.fr/" target="_blank">https://easy-space.fr/</a></b></p>
+     <p>ainsi que le site du projet INISAT sur : <b><a href="https://inisat.fr/" target="_blank">https://inisat.fr/</a></b></p> 
+    </div>
+
+
+</main>
+
+<script src="js-console.js"></script>
+
+
+</body>
+</html>
+
