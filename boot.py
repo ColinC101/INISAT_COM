@@ -1,6 +1,16 @@
-from network import WLAN
+#COMMON
 import pycom
 import time
+import uos
+#WIFI
+from network import WLAN
+#UDP
+import socket
+#WEB
+import usocket
+import _thread
+#import http.server
+#import socketserver
 
 ################################################################
 #######################       WIFI       #######################
@@ -49,16 +59,116 @@ def getConnectedDevices():
     print("Connected devices :")
     deviceList = wlan.ap_tcpip_sta_list()
     for i in (deviceList):
-        print("MAC: " + i.mac.decode('utf-16') + "|IP : " + i.IP)
+        print("MAC: " + "000"  + "|IP : " + i.IP)
     return deviceList
+    #i.mac.decode('utf-16')
     #b'\xf4B\x8f\x96\xb1\x91'
     #    f4 42 8f 96 b1 91
     #b'\xd0W{\x8c(\x0O)}
-    #    70:4d:7b:c2:f1:f4
     #    d0:57:7b:8c:28:00
+    #b'\xc8!Xk\xfeE
+    #    c8 21 58 6b fe 45
+
+################################################################
+#######################        UDP       #######################
+################################################################
+
+def udpSend():
+    udpIp = "192.168.4.2"
+    udpPort = 55057
+    udpMsg = b"Coucou"
+    sock = socket.socket(socket.AF_INET, # Interne
+                         socket.SOCK_DGRAM) # UDP
+    sock.sendto(udpMsg, (udpIp, udpPort))
+    #print("Sent \"" + udpMsg + "\" to " + udpIp)
+
+def udpReceive():
+    print("Ready to receive ...")
+    udpIp = "192.168.4.1"
+    udpPort = 5005
+    sock = socket.socket(socket.AF_INET,
+                         socket.SOCK_DGRAM)
+    sock.bind((udpIp, udpPort))
+    while True:
+        data, addr = sock.recvfrom(1024) #Buffer size
+        print("Received UDP mdg : %s" % data)
+
+
+################################################################
+#######################        WEB       #######################
+################################################################
+
+def client_thread(clientsocket, n):
+    request = str(clientsocket.recv(4096))
+    if len(request) == 0:
+        clientsocket.close()
+        return
+    #else:
+        #print("Received: {}".format(request))
+
+
+    splitRequest = request.split(" ")
+    if len(splitRequest) <= 1:
+        fileName = "1"
+    else:
+        fileName = "/index.html" if splitRequest[1]=="/" else splitRequest[1]
+
+
+    mimeTypeList = [(".html", b"text/html"),
+                    (".css", b"text/css"),
+                    (".jpg", b"image/jpeg"),
+                    (".js", b"application/javascript"),
+                    (".txt", b"text/plain"),
+                    (".woff", b"font/woff"),
+                    (".woff2", b"font/woff2")]
+
+    mimeType = b"application/octet-string"
+    for i in mimeTypeList:
+        if i[0] in fileName:
+            mimeType = i[1]
+
+    try:
+        with open("web" + fileName, 'rb') as infile: #(fileName if fileName[0]=='/' else ("/"+fileName))
+            print(fileName)
+            http = b"HTTP/1.1 200 OK\r\nContent-Type: " + mimeType + b"\r\nContent-Lenght: " + str(uos.stat("web" + fileName)[6]) + b"\r\nConnection:close \r\n\r\n"
+            response_body = infile.read()
+            infile.close()
+    except OSError:
+        http = b"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection:close \r\n\r\n"
+        response_body = b"No index file found..."
+
+    clientsocket.send(http + response_body)
+
+    clientsocket.close()
+    time.sleep_ms(500)
+
+def initWeb():
+    """PORT = 8080
+    Handler = http.server.SimpleHTTPRequestHandler
+
+    with socketserver.TCPServer(("", PORT), Handler) as httpd:
+        print("serving at port", PORT)
+        httpd.serve_forever()
+    """
+
+    serversocket = usocket.socket(usocket.AF_INET, usocket.SOCK_STREAM)
+    serversocket.setsockopt(usocket.SOL_SOCKET, usocket.SO_REUSEADDR, 1)
+    serversocket.bind(("192.168.4.1", 8080))
+    serversocket.listen(1)
+
+    while True:
+        (clientsocket, address) = serversocket.accept()
+        _thread.start_new_thread(client_thread, (clientsocket, 1))
+    serversocket.close()
+################################################################
+#######################     EXECUTION    #######################
+################################################################
 
 print(wifiSsid)
 
+#initWifi()
+#time.sleep(10)
+#getConnectedDevices()
+#udpReceive();
 initWifi()
-time.sleep(10)
-getConnectedDevices()
+initWeb()
