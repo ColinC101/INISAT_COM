@@ -34,9 +34,6 @@ loraDeviceClass = 0
 
 # Getting LoRa object
 lora = LoRa(mode=loraMode, region=loraRegion)
-# Creating communication Socket
-s = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
-s.setblocking(False)
 
 def initLoRa():
     print("Initializing LoRa ...")
@@ -51,18 +48,28 @@ def initLoRa():
 
 
 def loopSend():
+    # Creating communication Socket
+    s = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
+    s.setblocking(False)
     i = 0
-    while True:
+    #while True:
+    while i<10:
         s.send('Ping')
         print('Ping {}'.format(i))
-        i += i
-        time.sleep(2)
+        i += 1
+        time.sleep(1)
+    s.close
 
 def loopReceive():
+    # Creating communication Socket
+    s = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
+    s.setblocking(False)
     i = 0
-    while True:
+    #while True:
+    while i<10:
         if s.recv(64) == b'Ping':
             s.send('Pong')
             print('Pong {}'.format(i))
             i += 1
-        time.sleep(2)
+        time.sleep(1)
+    s.close

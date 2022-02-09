@@ -2,6 +2,8 @@
 import pycom
 import time
 import uos
+#LoRa
+import LoRa
 #WIFI
 from network import WLAN
 #UDP
@@ -27,7 +29,7 @@ wifiSsid = 'INISAT' #SSID of Wifi AP
 wifiAuth=(WLAN.WPA2, "123456789") #Authentification key for Wifi AP
 wifiChannel = 1 #Channel for Wifi connection
 wifiAntenna = WLAN.INT_ANT #Select between integrated and external antenna (WLAN.EXT_ANT)
-wifiBandwidth = WLAN.HT40 #Bandwith to use for Wifi, 20MHz or 40MHz
+#wifiBandwidth = WLAN.HT40 #Bandwith to use for Wifi, 20MHz or 40MHz
 wifiMaxTxPower = 19.5 #WiFi power in dBm
 #wifiProtocol =
 
@@ -42,7 +44,8 @@ def convertTxPower(dBmValue):
 
 def initWifi():
     print("Initializing WiFi Access Point ...")
-    wlan.init(mode=wifiMode, ssid=wifiSsid, auth=wifiAuth, channel=wifiChannel, antenna=wifiAntenna, bandwidth=wifiBandwidth, max_tx_pwr=78)
+    wlan.init()
+    #wlan.init(mode=wifiMode, ssid=wifiSsid, auth=wifiAuth, channel=wifiChannel, antenna=wifiAntenna, bandwidth=wifiBandwidth, max_tx_pwr=78)
               #max_tx_pwr=convertTxPower(wifiMaxTxPower))
               #protocol=
     print("WLAN initialized")
@@ -160,15 +163,21 @@ def initWeb():
         (clientsocket, address) = serversocket.accept()
         _thread.start_new_thread(client_thread, (clientsocket, 1))
     serversocket.close()
+
+
+
 ################################################################
 #######################     EXECUTION    #######################
 ################################################################
 
 print(wifiSsid)
 
-#initWifi()
 #time.sleep(10)
 #getConnectedDevices()
 #udpReceive();
 initWifi()
-initWeb()
+#initWeb()
+
+LoRa.initLoRa()
+
+print("End Boot")

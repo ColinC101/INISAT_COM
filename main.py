@@ -1,6 +1,13 @@
 import pycom
 import time
+import LoRa
+
+print("Begin Main")
 
 pycom.heartbeat(False)
 
-print("End main")
+
+
+LoRa.loopSend()
+
+print("End Main")
