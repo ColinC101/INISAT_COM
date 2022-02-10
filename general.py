@@ -52,46 +52,68 @@ def setupGPIO():
 
     utime.sleep_ms(100)
 
-def testMag1():
+def testMagneto(tstIdx):
     """
-    Test function for magneto-coupler 1
+    Test function for magneto-coupler
+    @arg tstIdx (int) : Indicates the test to execute. Accepted values : 1,2,3,4 
     """
     global testMag
     testMag = 1 
     
     Imax = 150
-    p = 90
     t = 34
     
-    print("Start test magneto-coupler 1")
+    print("Start test magneto-coupler "+str(tstIdx))
+    
+    # Values of p for the 4 different tests [p-Phase1,p-Phase2,p-Phase3,p-Phase4]
+    pVal = [90,450,90,450] 
 
-    systemPhasesDirection = [(0,1),(0,0),(1,0),(1,1)]
+    # List of current direction for the 4 different phases (directionX,directionY)
+    sysPhasesDirectionTst1 = [(0,1),(0,0),(1,0),(1,1)]
+    sysPhasesDirectionTst2 = [(0,1),(0,0),(1,0),(1,1)]
+    sysPhasesDirectionTst3 = [(1,1),(1,0),(0,0),(0,1)]
+    sysPhasesDirectionTst4 = [(1,1),(1,0),(0,0),(0,1)]
+
+    # Store all the current direction [Phase1,Phase2,Phase3,Phase4]
+    sysTestDir = [sysPhasesDirectionTst1,sysPhasesDirectionTst2,sysPhasesDirectionTst3,sysPhasesDirectionTst4]
+
+    # Retrieve the current direction of the different phases for the selected test
+    selectedPhasesDir = sysTestDir[tstIdx-1]
+    # And the value of p
+    selectedP = pVal[tstIdx-1]
+    
     while(testMag>0):
-        for phase in systemPhasesDirection:            
-            ioctlObj.getObject(Ioctl.KEY_DIR_X).value(phase[0])
-            ioctlObj.getObject(Ioctl.KEY_DIR_Y).value(phase[1])
+        phaseIdx = 0 # Store the running phase
+        for currentDirection in selectedPhasesDir:      
+            phaseIdx = phaseIdx + 1
+            # Set current direction for magneto coupler X and Y      
+            ioctlObj.getObject(Ioctl.KEY_DIR_X).value(currentDirection[0])
+            ioctlObj.getObject(Ioctl.KEY_DIR_Y).value(currentDirection[1])
 
-            for j in range(255,(Imax-1),-t):
+            jMin = (Imax+t) if ((tstIdx == 2) and (phaseIdx == 4)) else Imax
+            for j in range(255,(jMin-1),-t):
                 # ^ is XOR
-                if bool(phase[0]^phase[1]):
+                if bool(currentDirection[0]^currentDirection[1]):
                     Sx = j/255.0
                     Sy = (255.0-j)/255.0
                 else:
                     Sx = (255.0-j)/255.0
                     Sy = j/255.0               
                 
+                # Set the PWM duty cycle for magneto coupler X and Y
                 ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(Sx)
                 ioctlObj.getObject(Ioctl.KEY_PWM_Y).duty_cycle(Sy)
-                utime.sleep_ms(p)
+                utime.sleep_ms(selectedP)
     utime.sleep_ms(100)
-    # Send event 5 :D 
+    # Event source fin --
+    # UDP fin 
     utime.sleep_ms(100)
     ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1.0)
     utime.sleep_ms(100)
     ioctlObj.getObject(Ioctl.KEY_PWM_Y).duty_cycle(1.0)
     utime.sleep_ms(100)
 
-    print("Stop test magneto-coupler 1")
+    print("Stop test magneto-coupler "+str(tstIdx))
 
     # Send event5 fin
     utime.sleep_ms(100)
