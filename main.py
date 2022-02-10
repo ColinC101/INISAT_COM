@@ -145,7 +145,7 @@ def tcpClientThread(tcpClientsocket, n):
                     mimeType = i[1]
             try:
                 with open("web/" + requestContent, 'rb') as infile:
-                    http_header = b"HTTP/1.1 200 OK\r\nContent-Type: " + mimeType + b"\r\nContent-Lenght: " + str(uos.stat("web" + fileName)[6]) + b"\r\nConnection:close \r\n\r\n"
+                    http_header = b"HTTP/1.1 200 OK\r\nContent-Type: " + mimeType + b"\r\nContent-Lenght: " + str(uos.stat("web/" + requestContent)[6]) + b"\r\nConnection:close \r\n\r\n"
                     http_body = infile.read()
                     infile.close()
             except OSError:
