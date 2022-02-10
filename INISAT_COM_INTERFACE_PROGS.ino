@@ -1796,6 +1796,7 @@ server.addHandler(&events5);
 //esp_task_wdt_add(NULL); //add current thread to WDT watch
 
 // Route for root / web page
+/*##################
 server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
 request->send(SPIFFS, "/index.html", String(), false);
   });
@@ -1804,12 +1805,13 @@ server.on("/controle.html", HTTP_GET, [](AsyncWebServerRequest *request){
 request->send(SPIFFS, "/controle.html", String(), false, processor);
   });
 
-server.on("/telecommandes.html", HTTP_GET, [](AsyncWebServerRequest *request){
+server.on("/telecommandes.html", HTTP_GET, [](AsyncWebRequest *request){
 request->send(SPIFFS, "/telecommandes.html", String(), false, processor);
   });
 server.serveStatic("/", SPIFFS, "/");
 
 // evenement pour agir lors des changement des bouttons de la partie controle**************************************************************************************
+################*/
 
 server.on("/LoraOFF", HTTP_GET, [](AsyncWebServerRequest *request){ // button active/desactivation liaison LORA****************************************************
    // Serial.println(LoraStatus);
