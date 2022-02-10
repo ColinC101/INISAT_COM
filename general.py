@@ -86,6 +86,7 @@ def testMagneto(paramStruct):
     global testMag
     testMag = 1
 
+    print("Hello Colin")
     Imax = 150
     t = 34
 
