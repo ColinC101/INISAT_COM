@@ -2,6 +2,7 @@
 import pycom
 import time
 <<<<<<< HEAD
+<<<<<<< HEAD
 import uos
 #WIFI
 from network import WLAN
@@ -14,10 +15,16 @@ import _thread
 #import socketserver
 =======
 import LoRa
+=======
+import LoRa
 
 print("Begin Main")
 >>>>>>> 89c6c53a3f3aa35f520df8c308bcf2ccf2e90ad9
 
+print("Begin Main")
+>>>>>>> 89c6c53a3f3aa35f520df8c308bcf2ccf2e90ad9
+
+<<<<<<< HEAD
 ################################################################
 #######################  GLOBAL CONFIG   #######################
 ################################################################
@@ -186,9 +193,14 @@ print(wifiSsid)
 initWifi()
 initWeb()
 =======
+=======
+>>>>>>> 89c6c53a3f3aa35f520df8c308bcf2ccf2e90ad9
 
 
 LoRa.loopSend()
 
 print("End Main")
+<<<<<<< HEAD
+>>>>>>> 89c6c53a3f3aa35f520df8c308bcf2ccf2e90ad9
+=======
 >>>>>>> 89c6c53a3f3aa35f520df8c308bcf2ccf2e90ad9

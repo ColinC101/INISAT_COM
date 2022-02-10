@@ -183,5 +183,9 @@ initWifi()
 
 LoRa.initLoRa()
 
+<<<<<<< HEAD
+print("End Boot")
+>>>>>>> 89c6c53a3f3aa35f520df8c308bcf2ccf2e90ad9
+=======
 print("End Boot")
 >>>>>>> 89c6c53a3f3aa35f520df8c308bcf2ccf2e90ad9
