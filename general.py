@@ -88,7 +88,6 @@ def testMagneto(paramStruct):
     Imax = 150
     t = 34
 
-
     print("Start test magneto-coupler "+str(tstIdx))
 
     # Values of p for the 4 different tests [p-Phase1,p-Phase2,p-Phase3,p-Phase4]
