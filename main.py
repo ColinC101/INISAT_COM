@@ -12,6 +12,7 @@ import _thread
 #import http.server
 #import socketserver
 import LoRa
+import general
 
 print("Begin Main")
 
@@ -69,7 +70,6 @@ def initWifi():
 def disableWifi():
     wlan.deinit()
 
-
 def getConnectedDevices():
     print("Connected devices :")
     deviceList = wlan.ap_tcpip_sta_list()
@@ -113,6 +113,7 @@ def udpReceive():
 #######################        WEB       #######################
 ################################################################
 
+
 def tcpClientThread(tcpClientsocket, n):
     """
     TCP request handler
@@ -128,15 +129,15 @@ def tcpClientThread(tcpClientsocket, n):
                     (".txt", b"text/plain"),
                     (".woff", b"font/woff"),
                     (".woff2", b"font/woff2")]
-    commandList = ["LoraON, LoraOFF, camON, camOFF"]
 
     if len(splitRequest) <= 1:
         http_body = b"Invalid request, ignoring .."
     else:
         requestContent = "index.html" if splitRequest[1]=="/" else splitRequest[1][1:]
 
-        if requestContent in commandList:
-            http_body = b"Requested command .."
+        isCommand = general.commandHandler(requestContent)
+        if isCommand[0] == 1:
+            http_body = isCommand[1]
         else:
             mimeType = b"application/octet-string"
             for i in mimeTypeList:
