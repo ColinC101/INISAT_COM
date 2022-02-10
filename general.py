@@ -80,6 +80,7 @@ def testMagneto(paramStruct):
     Test function for magneto-coupler
     @arg tstIdx (int) : Indicates the test to execute. Accepted values : 1,2,3,4
     """
+    print("hello jl")
     tstIdx = paramStruct[0]
     global ioctlObj
     global testMag
