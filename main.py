@@ -1,6 +1,7 @@
 #COMMON
 import pycom
 import time
+<<<<<<< HEAD
 import uos
 #WIFI
 from network import WLAN
@@ -11,11 +12,17 @@ import usocket
 import _thread
 #import http.server
 #import socketserver
+=======
+import LoRa
+
+print("Begin Main")
+>>>>>>> 89c6c53a3f3aa35f520df8c308bcf2ccf2e90ad9
 
 ################################################################
 #######################  GLOBAL CONFIG   #######################
 ################################################################
 
+<<<<<<< HEAD
 localIp = "192.168.4.1"
 tcpPort = 8080
 
@@ -178,3 +185,10 @@ print(wifiSsid)
 #udpReceive();
 initWifi()
 initWeb()
+=======
+
+
+LoRa.loopSend()
+
+print("End Main")
+>>>>>>> 89c6c53a3f3aa35f520df8c308bcf2ccf2e90ad9
