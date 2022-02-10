@@ -52,46 +52,47 @@ def setupGPIO():
 
     utime.sleep_ms(100)
 
-<<<<<<< HEAD
-def nullCommand():
+def nullCommand(paramStruct):
+    print("aha")
     return "No implementation for this command"
 
 def commandHandler(command):
-    commandList = [("LoraON", nullCommand), ("LoraOFF", nullCommand),
-                   ("camON", nullCommand), ("camOFF", nullCommand),
-                   ("t_console", nullCommand), ("t_graph", nullCommand),
-                   ("tst1", nullCommand), ("tst2", nullCommand), ("tst3", nullCommand),
-                   ("tst4", nullCommand), ("tststp", nullCommand),
-                   ("ang_couple", nullCommand), ("demag", nullCommand,  ("roue", nullCommand),
-                   ("startgnss", nullCommand), ("stopgnss", nullCommand), ("savegnss", nullCommand),
-                   ("ouvPage", nullCommand),  ("cons_config", nullCommand),
-                   ("autoTest", nullCommand), ("user", nullCommand),
-                   ("configGraph1", nullCommand), ("configGraph2", nullCommand), ("configGraph3", nullCommand),
-                   ("configGraph4", nullCommand), ("configGraph5", nullCommand), ("configGraph6", nullCommand)]
+    commandList = [("LoraON", nullCommand, ()), ("LoraOFF", nullCommand, ()),
+                   ("camON", nullCommand, ()), ("camOFF", nullCommand, ()),
+                   ("t_console", nullCommand, ()), ("t_graph", nullCommand, ()),
+                   ("tst1", testMagneto, (1,)), ("tst2", testMagneto, (2,)), ("tst3", testMagneto, (3,)),
+                   ("tst4", testMagneto, (4,)), ("tststp", stopTestMag, ()),
+                   ("ang_couple", nullCommand, ()), ("demag", nullCommand, ()),  ("roue", nullCommand, ()),
+                   ("startgnss", nullCommand, ()), ("stopgnss", nullCommand, ()), ("savegnss", nullCommand, ()),
+                   ("ouvPage", nullCommand, ()),  ("cons_config", nullCommand, ()),
+                   ("autoTest", nullCommand, ()), ("user", nullCommand, ()),
+                   ("configGraph1", nullCommand, ()), ("configGraph2", nullCommand, ()), ("configGraph3", nullCommand, ()),
+                   ("configGraph4", nullCommand, ()), ("configGraph5", nullCommand, ()), ("configGraph6", nullCommand, ())]
     for i in commandList:
-        if i[0] == command
-            return (1, i[1])
-    else:
-        return (-1, "Command Not Found")
+        if i[0] == command:
+            return (1, i[1](i[2]))
+    return (-1, "Command Not Found")
 
 
 
-def testMagneto(tstIdx):
+def testMagneto(paramStruct):
     """
     Test function for magneto-coupler
-    @arg tstIdx (int) : Indicates the test to execute. Accepted values : 1,2,3,4 
+    @arg tstIdx (int) : Indicates the test to execute. Accepted values : 1,2,3,4
     """
+    tstIdx = paramStruct[0]
+    global ioctlObj
     global testMag
     testMag = 1
 
     Imax = 150
     t = 34
 
-    
+
     print("Start test magneto-coupler "+str(tstIdx))
-    
+
     # Values of p for the 4 different tests [p-Phase1,p-Phase2,p-Phase3,p-Phase4]
-    pVal = [90,450,90,450] 
+    pVal = [90,450,90,450]
 
     # List of current direction for the 4 different phases (directionX,directionY)
     sysPhasesDirectionTst1 = [(0,1),(0,0),(1,0),(1,1)]
@@ -106,12 +107,12 @@ def testMagneto(tstIdx):
     selectedPhasesDir = sysTestDir[tstIdx-1]
     # And the value of p
     selectedP = pVal[tstIdx-1]
-    
+
     while(testMag>0):
         phaseIdx = 0 # Store the running phase
-        for currentDirection in selectedPhasesDir:      
+        for currentDirection in selectedPhasesDir:
             phaseIdx = phaseIdx + 1
-            # Set current direction for magneto coupler X and Y      
+            # Set current direction for magneto coupler X and Y
             ioctlObj.getObject(Ioctl.KEY_DIR_X).value(currentDirection[0])
             ioctlObj.getObject(Ioctl.KEY_DIR_Y).value(currentDirection[1])
 
@@ -123,8 +124,8 @@ def testMagneto(tstIdx):
                     Sy = (255.0-j)/255.0
                 else:
                     Sx = (255.0-j)/255.0
-                    Sy = j/255.0               
-                
+                    Sy = j/255.0
+
                 # Set the PWM duty cycle for magneto coupler X and Y
                 ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(Sx)
                 ioctlObj.getObject(Ioctl.KEY_PWM_Y).duty_cycle(Sy)
@@ -132,7 +133,7 @@ def testMagneto(tstIdx):
     utime.sleep_ms(100)
 
     # Event source fin --
-    # UDP fin 
+    # UDP fin
     utime.sleep_ms(100)
     ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1.0)
     utime.sleep_ms(100)
@@ -141,17 +142,18 @@ def testMagneto(tstIdx):
 
     print("Stop test magneto-coupler "+str(tstIdx))
 
+
     # Send event5 fin
     utime.sleep_ms(100)
-    # Send event5 fin
-    utime.sleep_ms(100)
+    return "Test du magnéto-coupleur " + str(tstIdx) + " terminé !"
 
 
 
 
-def stopTestMag():
+def stopTestMag(paramStruct):
     """
     Stops all running tests on the magneto-couplers
     """
     global testMag
     testMag = 0
+    return "Arrêt du test ..."
