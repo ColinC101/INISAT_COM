@@ -52,8 +52,8 @@ def setupGPIO():
 
     utime.sleep_ms(100)
 
+
 def nullCommand(paramStruct):
-    print("aha")
     return "No implementation for this command"
 
 def commandHandler(command):
