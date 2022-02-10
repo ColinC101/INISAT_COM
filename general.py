@@ -52,7 +52,6 @@ def setupGPIO():
 
     utime.sleep_ms(100)
 
-<<<<<<< HEAD
 def nullCommand():
     return "No implementation for this command"
 
