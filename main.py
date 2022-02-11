@@ -11,9 +11,7 @@ import usocket
 import _thread
 #import http.server
 #import socketserver
-import LoRa
 import general
-from udpserver import UdpServer
 
 print("Begin Main")
 
@@ -25,9 +23,6 @@ localIp = "192.168.4.1"
 tcpPort = 8080
 
 tcpBufferSize = 4096 #Reception buffer for TCP requests
-
-loraState = False
-camState = False
 
 ################################################################
 #######################       WIFI       #######################
@@ -180,18 +175,16 @@ def initWeb():
 
 print(wifiSsid)
 
-#initWifi()
-#time.sleep(10)
-#getConnectedDevices()
-#udpReceive();
+# Init IOs
 general.setupGPIO()
+
+# Init WiFi
 initWifi()
 
+# Init LoRa
+general.initLoRa()
 
+# Start WebServer
 initWeb()
-#LoRa.initLoRa()
-
-
-#LoRa.loopSend()
 
 print("End Main")
