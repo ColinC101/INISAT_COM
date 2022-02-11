@@ -1,3 +1,4 @@
+from udpserver import UdpServer
 import utime
 import config
 from machine import PWM
@@ -6,17 +7,152 @@ from machine import Pin
 from ioctl import Ioctl
 import LoRa
 
+# Console updating interval (ms)
+consoleInterval = 5000
+
+# Enable / Disable GNSS
+modeGnss = 0
+
+# Enable / Disable camera
+camStatus = 0
+
+# Enable / Disable UDP com
+udpCom = False
+
 # Active magneto-coupler test
 testMag = 0
 
 # Ioctl object for IO interfaces
 ioctlObj = Ioctl()
 
+# UDP Server object
+udpServ = None
+udpPort = 9991
+
 consoleEvent = EventSource("consoleEvent")
 graphEvent = EventSource("graphEvent")
 interfaceEvent = EventSource("interfaceEvent")
 autotestEvent = EventSource("autotestEvent")
 demagEvent = EventSource("demagEvent")
+
+
+def initLora():
+    """
+    Init LoRa
+    """
+    LoRa.initLoRa()
+
+def getState():
+    """
+    Return a string representing the current state of the server
+    """
+    return "S" + str(camStatus) + "#" + str(int(LoRa.getLoraStatus()))+"#Capteurs OK#"+str(consoleInterval)+"#"+str(modeGnss)+"@"
+
+def cbNone():
+    """
+    Disable UDP communication
+    """
+    udpCom = False
+    return ""
+
+def cbStopUDP():
+    """
+    Disable UDP communication
+    """
+    udpCom = False
+    return "Fin de la communication avec INISAT 2U "
+
+def cbBeginUDP():
+    """
+    Enable UDP communication
+    """
+    udpCom = True
+    return "Client enregistre, debut de la communication avec INISAT 2U"
+
+def cbState():
+    """
+    Send the current state of the server, over UDP
+    """
+    return getState()
+
+def cbCameraOn():
+    """
+    Turn on the camera
+    """
+    global camStatus
+    camStatus = 1
+    ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value(1)
+    print("Camera activee")
+    return getState()
+
+def cbCameraOff():
+    """
+    Turn off the camera
+    """
+    global camStatus
+    camStatus = 0
+    ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value(0)
+    print("Camera desactivee")
+    return getState()
+
+def cbLoRaOn():
+    """
+    Turn on LoRa
+    """
+    LoRa.enableLora()
+    print("Liaison LoRa activee")
+    return getState()
+
+def cbLoRaOff():
+    """
+    Turn off LoRa
+    """
+    LoRa.disableLora()
+    print("Liaison LoRa desactivee")
+    return getState()
+
+def cbTest():
+    # TODO
+    return getState()
+
+def cbAutoTest():
+    # TODO
+    return "Config autotest lancee .."
+
+def cbGNSSon():
+    """
+    Activate GNSS
+    """
+    global modeGnss
+    modeGnss = 1
+    # TODO
+    return getState()
+
+def cbGNSSoff():
+    """
+    Disable GNSS
+    """
+    global modeGnss
+    modeGnss = 2
+    return getState()
+
+def cbGNSSsave():
+    """
+    Save GNSS data
+    """
+    global modeGnss
+    modeGnss = 0
+    # TODO
+    return getState()
+
+def startUDPServer(localIP):
+    """
+    Start the UDP Server
+    """
+    global udpServ
+    cbList = {"none":cbNone}
+    udpServ = UdpServer(cbList)
+    udpServ.listen(localIP,udpPort)
 
 def setupGPIO():
     """
@@ -56,6 +192,13 @@ def setupGPIO():
     ioctlObj.setObject(Ioctl.KEY_CAM_CONTROL,cameraControl)
     ioctlObj.setObject(Ioctl.KEY_DIR_X,dirX)
     ioctlObj.setObject(Ioctl.KEY_DIR_Y,dirY)
+
+    # Default state
+    ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1.0)
+    ioctlObj.getObject(Ioctl.KEY_DIR_Y).duty_cycle(1.0)
+    ioctlObj.getObject(Ioctl.KEY_LORA_LED).value(0)
+    ioctlObj.getObject(Ioctl.KEY_WIFI_LED).value(0)
+    ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value(0)
 
     utime.sleep_ms(100)
 
