@@ -48,7 +48,10 @@ class UdpServer:
             udpCommand = udpCommand.strip().lower()
 
             if udpCommand in self.cbList:
-                self.cbList[udpCommand]()
+                # Execute the command
+                responseMsg = self.cbList[udpCommand]()
+                # Send the response
+                self.sendTo(responseMsg,(self.lastRemoteAddr,self.lastRemotePort))
             else:
                 print("UDP command '"+udpCommand+"' is ignored (no associated callback)")            
 
@@ -58,11 +61,10 @@ class UdpServer:
         """
         return (self.lastRemoteAddr,self.lastRemotePort)
 
-    def sendTo(self,msg,remoteAddr,remotePort):
+    def sendTo(self,msg,remote):
         """
         Send a UDP packet to the given destination
         @arg msg(str): the content of the UDP packet
-        @arg remoteAddr(str) : the destination IP address
-        @arg remotePort(int) : the destination UDP port
+        @arg remote((str,int)) : (the destination IP address,the destination UDP port)
         """
-        self.udpSocket.sendto(bytes(msg,"utf-8"),(remoteAddr,remotePort))
+        self.udpSocket.sendto(bytes(msg,"utf-8"),remote)
