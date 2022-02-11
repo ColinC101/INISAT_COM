@@ -118,7 +118,7 @@ def tcpClientThread(tcpClientsocket, n):
     """
     TCP request handler
     """
-    request = str(clientsocket.recv(tcpBufferSize))
+    request = str(tcpClientsocket.recv(tcpBufferSize))
     splitRequest = request.split(" ")
 
     http_header = b"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection:close \r\n\r\n"
@@ -136,8 +136,11 @@ def tcpClientThread(tcpClientsocket, n):
         requestContent = "index.html" if splitRequest[1]=="/" else splitRequest[1][1:]
 
         isCommand = general.commandHandler(requestContent)
+        isEvent = general.eventHandler(requestContent, tcpClientsocket)
         if isCommand[0] == 1:
             http_body = isCommand[1]
+        elif isEvent[0] == 1:
+            return
         else:
             mimeType = b"application/octet-string"
             for i in mimeTypeList:
@@ -151,8 +154,8 @@ def tcpClientThread(tcpClientsocket, n):
             except OSError:
                 http_body = b"Requested file : not found .."
 
-    clientsocket.send(http_header + http_body)
-    clientsocket.close()
+    tcpClientsocket.send(http_header + http_body)
+    tcpClientsocket.close()
     time.sleep_ms(500)
 
 def initWeb():
@@ -180,10 +183,11 @@ print(wifiSsid)
 #time.sleep(10)
 #getConnectedDevices()
 #udpReceive();
+general.setupGPIO()
 initWifi()
 initWeb()
-LoRa.initLoRa()
+#LoRa.initLoRa()
 
-LoRa.loopSend()
+#LoRa.loopSend()
 
 print("End Main")

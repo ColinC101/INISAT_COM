@@ -4,12 +4,19 @@ from machine import PWM
 from machine import UART
 from machine import Pin
 from ioctl import Ioctl
+import LoRa
 
 # Active magneto-coupler test
 testMag = 0
 
 # Ioctl object for IO interfaces
 ioctlObj = Ioctl()
+
+consoleEvent = EventSource("consoleEvent")
+graphEvent = EventSource("graphEvent")
+interfaceEvent = EventSource("interfaceEvent")
+autotestEvent = EventSource("autotestEvent")
+demagEvent = EventSource("demagEvent")
 
 def setupGPIO():
     """
@@ -52,12 +59,21 @@ def setupGPIO():
 
     utime.sleep_ms(100)
 
+def eventHandler(event, socket):
+    eventList = [("events", consoleEvent), ("events2", graphEvent),
+                 ("events3", interfaceEvent), ("events4", autotestEvent),
+                 ("events5", demagEvent)]
+    for i in eventList:
+        if i[0] = event:
+            i[1].bind(socket)
+            return (1, "Event " + event + " bounded")
+    return (-1, "Event Not Found")
 
 def nullCommand(paramStruct):
     return "No implementation for this command"
 
 def commandHandler(command):
-    commandList = [("LoraON", nullCommand, ()), ("LoraOFF", nullCommand, ()),
+    commandList = [("LoraON", toggleLora, (True)), ("LoraOFF", toggleLora, (False)),
                    ("camON", nullCommand, ()), ("camOFF", nullCommand, ()),
                    ("t_console", nullCommand, ()), ("t_graph", nullCommand, ()),
                    ("tst1", testMagneto, (1,)), ("tst2", testMagneto, (2,)), ("tst3", testMagneto, (3,)),
@@ -73,20 +89,29 @@ def commandHandler(command):
             return (1, i[1](i[2]))
     return (-1, "Command Not Found")
 
-
+def toggleLora(paramStruct):
+    loraActive = LoRa.getLoraStatus()
+    if (paramStruct == () or paramStruct[0]) and not loraActive:
+        LoRa.enableLora():
+        return "Liaison LoRa activée"
+    elif (paramStruct == () or not paramStruct[0]) and loraActive:
+        LoRa.disableLora():
+        return "Liaison LoRa désactivée"
+    elif paramStruct[0] and loraActive:
+        return "Liaison LoRa déjà active !"
+    elif not paramStruct[0] and not loraActive:
+        return "Liaison LoRa déjà éteinte !"
 
 def testMagneto(paramStruct):
     """
     Test function for magneto-coupler
-    @arg tstIdx (int) : Indicates the test to execute. Accepted values : 1,2,3,4
+    @arg paramStruct (int, ) : Indicates the test to execute. Accepted values : 1,2,3,4
     """
-    print("hello jl")
     tstIdx = paramStruct[0]
     global ioctlObj
     global testMag
     testMag = 1
 
-    print("Hello Colin")
     Imax = 150
     t = 34
 
