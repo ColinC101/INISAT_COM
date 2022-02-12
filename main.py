@@ -11,7 +11,6 @@ import usocket
 import _thread
 #import http.server
 #import socketserver
-import LoRa
 import general
 
 print("Begin Main")
@@ -24,9 +23,6 @@ localIp = "192.168.4.1"
 tcpPort = 8080
 
 tcpBufferSize = 4096 #Reception buffer for TCP requests
-
-loraState = False
-camState = False
 
 ################################################################
 #######################       WIFI       #######################
@@ -118,7 +114,7 @@ def tcpClientThread(tcpClientsocket, n):
     """
     TCP request handler
     """
-    request = str(clientsocket.recv(tcpBufferSize))
+    request = str(tcpClientsocket.recv(tcpBufferSize))
     splitRequest = request.split(" ")
 
     http_header = b"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection:close \r\n\r\n"
@@ -136,8 +132,11 @@ def tcpClientThread(tcpClientsocket, n):
         requestContent = "index.html" if splitRequest[1]=="/" else splitRequest[1][1:]
 
         isCommand = general.commandHandler(requestContent)
+        isEvent = general.eventHandler(requestContent, tcpClientsocket)
         if isCommand[0] == 1:
             http_body = isCommand[1]
+        elif isEvent[0] == 1:
+            return
         else:
             mimeType = b"application/octet-string"
             for i in mimeTypeList:
@@ -151,8 +150,8 @@ def tcpClientThread(tcpClientsocket, n):
             except OSError:
                 http_body = b"Requested file : not found .."
 
-    clientsocket.send(http_header + http_body)
-    clientsocket.close()
+    tcpClientsocket.send(http_header + http_body)
+    tcpClientsocket.close()
     time.sleep_ms(500)
 
 def initWeb():
@@ -176,14 +175,16 @@ def initWeb():
 
 print(wifiSsid)
 
-#initWifi()
-#time.sleep(10)
-#getConnectedDevices()
-#udpReceive();
-initWifi()
-initWeb()
-LoRa.initLoRa()
+# Init IOs
+general.setupGPIO()
 
-LoRa.loopSend()
+# Init WiFi
+initWifi()
+
+# Init LoRa
+general.initLoRa()
+
+# Start WebServer
+initWeb()
 
 print("End Main")
