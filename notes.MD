@@ -16,3 +16,24 @@
 ## Autres commandes
     GNSS => GNSS | Serial1:'N'
     NMEA => NMEA | Serial1:'O'
+
+# Configuration console
+    consConfig="00000000000000" (taille: 14 caractères)
+    consConfig[x]=1 => Param x ON
+    consConfig[x]=0 => Param x OFF
+
+    consConfig[0] : EPS
+    consConfig[1] : TEMPERATURE
+    consConfig[2] : ALT
+    consConfig[3] : PRESS
+    consConfig[4] : EULER
+    consConfig[5] : QUATERNION
+    consConfig[6] : V_ANG
+    consConfig[7] : ACC
+    consConfig[8] : CHAMP_MAG
+    consConfig[9] : ACC_LIN
+    consConfig[10] : VEC_GRAV
+    consConfig[11] : LUM
+    consConfig[12] : GNSS
+    consConfig[13] : NMEA
+     
