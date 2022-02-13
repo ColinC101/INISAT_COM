@@ -50,10 +50,15 @@ def getState():
     """
     return "S" + str(camStatus) + "#" + str(int(LoRa.getLoraStatus()))+"#Capteurs OK#"+str(consoleInterval)+"#"+str(modeGnss)+"@"
 
+
+#### BEGIN - UDP COMMANDS ####
+
+## BEGIN - UDP INTERFACE COMMANDS ##
 def cbNone():
     """
     Disable UDP communication
     """
+    global udpCom
     udpCom = False
     return ""
 
@@ -61,6 +66,7 @@ def cbStopUDP():
     """
     Disable UDP communication
     """
+    global udpCom
     udpCom = False
     return "Fin de la communication avec INISAT 2U "
 
@@ -68,6 +74,7 @@ def cbBeginUDP():
     """
     Enable UDP communication
     """
+    global udpCom
     udpCom = True
     return "Client enregistre, debut de la communication avec INISAT 2U"
 
@@ -76,7 +83,9 @@ def cbState():
     Send the current state of the server, over UDP
     """
     return getState()
+## END - UDP INTERFACE COMMAND ##
 
+## BEGIN - ARTH INERFACE COMMAND ##
 def cbCameraOn():
     """
     Turn on the camera
@@ -147,12 +156,19 @@ def cbGNSSsave():
     # TODO
     return getState()
 
+## END - ARTH INERFACE COMMAND ##
+
+
+#### END - UDP COMMANDS #####
+
 def startUDPServer(localIP):
     """
     Start the UDP Server
     """
     global udpServ
-    cbList = {"none":cbNone}
+    cbList = {"none":cbNone,"stopudp":cbStopUDP,"beginudp":cbBeginUDP,"state":cbState,"cameraon":cbCameraOn,
+    "cameraoff":cbCameraOff,"loraon":cbLoRaOn,"loraoff":cbLoRaOff,"test":cbTest,"autotest":cbAutoTest,
+    "gnsson":cbGNSSon,"gnssoff":cbGNSSoff,"gnsssave":cbGNSSsave}
     udpServ = UdpServer(cbList)
     udpServ.listen(localIP,udpPort)
 
