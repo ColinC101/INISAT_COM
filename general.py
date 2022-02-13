@@ -8,6 +8,12 @@ from machine import Pin
 from ioctl import Ioctl
 import LoRa
 
+# Console configuration
+consConfig = "00000000000000"
+
+# Auto test status
+autoTesting = 0
+
 # Console updating interval (ms)
 consoleInterval = 5000
 
@@ -50,6 +56,11 @@ def getState():
     """
     return "S" + str(camStatus) + "#" + str(int(LoRa.getLoraStatus()))+"#Capteurs OK#"+str(consoleInterval)+"#"+str(modeGnss)+"@"
 
+def uartFlush():
+    """
+    Flush the UART-OBC serial link
+    """
+    ioctlObj.getObject(Ioctl.KEY_UART_OBC).wait_tx_done(1000)
 
 #### BEGIN - UDP COMMANDS ####
 
@@ -123,11 +134,23 @@ def cbLoRaOff():
     return getState()
 
 def cbTest():
-    # TODO
+    """
+    Start an auto test
+    """
+    global autoTesting
+    uartFlush()
+    ioctlObj.getObject(Ioctl.KEY_UART_OBC).write('A')
+    autoTesting = 1
     return getState()
 
 def cbAutoTest():
-    # TODO
+    """
+    Start also an auto test
+    """
+    global autoTesting
+    uartFlush()
+    ioctlObj.getObject(Ioctl.KEY_UART_OBC).write('A')
+    autoTesting = 1
     return "Config autotest lancee .."
 
 def cbGNSSon():
@@ -136,6 +159,7 @@ def cbGNSSon():
     """
     global modeGnss
     modeGnss = 1
+    uartFlush()
     # TODO
     return getState()
 
