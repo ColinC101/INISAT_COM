@@ -37,3 +37,19 @@
     consConfig[12] : GNSS
     consConfig[13] : NMEA
      
+# Boucle principale
+1. Mise à jour de l'état des LEDs (COMM,LoRa) + commande caméra mise à jour (camStatus)
+2. Requête pour l'OBC, faite toutes les INTV ms (1000ms par défaut)
+3. Lecture de la réponse de l'OBC (s'il y en a une)
+4. Test sur les magnéto coupleurs (si activés) / démagnétisation (si demandée)
+5. Lecture d'un paquet UDP (si présent)
+
+## Requête pour l'OBC
+1. Si UDP est inactif et que l'utilisateur ne s'est pas manifesté via un "/ouvPage" ou "/user" depuis user_intv ms (5min30 par défaut), reset de la consConfig et des graphes à afficher + user=0 (le navigateur est considéré comme fermé)
+2. Si la dernière transmission LoRa a été effectuée il y a plus de lora_intv ms (1min30 par défaut), alors demander la transmission des données sur LoRa (remarque: il se peut que cette transmission n'est en réalité pas lieu, si loraStatus=0)
+3. Pareil pour la console avec console_intv (5 secondes par défaut)
+4. Pareil pour les graphiques avec graph_intv (5 secondes par défaut)
+5. Pareil pour l'interface du navigateur avec interface_intv (1min par défaut)
+6. Pareil pour le suivi GNSS avec modeGnss_intv (2s par défaut), sauf que modeGnss doit être à 1
+7. Si il y a une requête OBC pour l'interface / la console / les graphiques / LoRa / le mode GNSS, alors écrire sur l'UART1 (vers l'OBC) la requête associée
+ 
