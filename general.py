@@ -10,6 +10,7 @@ import LoRa
 import eventsource
 import state
 import tcpServer
+import aliases
 
 consoleEvent = EventSource("consoleEvent")
 graphEvent = EventSource("graphEvent")
@@ -110,7 +111,7 @@ def cbTest():
     Start an auto test
     """
     uartFlush()
-    state.ioctlObj.getObject(Ioctl.KEY_UART_OBC).write('A')
+    state.ioctlObj.getObject(Ioctl.KEY_UART_OBC).write(aliases.UART_COMMAND_AUTOTEST)
     state.autoTesting = 1
     return getState()
 
@@ -119,7 +120,7 @@ def cbAutoTest():
     Start also an auto test
     """
     uartFlush()
-    state.ioctlObj.getObject(Ioctl.KEY_UART_OBC).write('A')
+    state.ioctlObj.getObject(Ioctl.KEY_UART_OBC).write(aliases.UART_COMMAND_AUTOTEST)
     state.autoTesting = 1
     return "Config autotest lancee .."
 
@@ -127,30 +128,61 @@ def cbGNSSon():
     """
     Activate GNSS
     """
-    state.modeGnss = 1
+    state.modeGnss = aliases.MODE_GNSS_RUNNING
+    state.gnssStartTime = utime.ticks_ms()
     uartFlush()
-    # TODO
+
+    # No console information fields
+    state.consoleConfig = aliases.CONSOLE_CONFIG_DISABLED
+    
+    # No charts
+    state.chartsConfig = aliases.CHARTS_CONFIG_DISABLED
+
+    try:
+        with open("web/Trajectoire_GNSS.txt", 'w') as infile:
+            infile.close()
+            print("Commande GNSS recue et fichier .txt cree ... ");
+    except OSError:
+        print("Echec lors de la creation du fichier Trajectoire_GNSS")
+
     return getState()
 
 def cbGNSSoff():
     """
     Disable GNSS
     """
-    state.modeGnss = 2
+    state.modeGnss = aliases.MODE_GNSS_STOPPED
     return getState()
 
 def cbGNSSsave():
     """
     Save GNSS data
     """
-    state.modeGnss = 0
-    # TODO
+    state.modeGnss = aliases.MODE_GNSS_FINISHED
+    gnssTransmitUDP()
     return getState()
 
 ## END - ARTH INERFACE COMMAND ##
 
-
 #### END - UDP COMMANDS #####
+
+def gnssTransmitUDP():
+    """
+    Transmit GNSS data stored in a file, over UDP
+    """
+    try:
+        with open("web/Trajectoire_GNSS.txt", 'rb') as infile:
+            fileLines = infile.readlines()
+            msgToSend = ""
+            for line in fileLines:
+                msgToSend = "W"+line.decode("utf-8")+"@"+"\r\n"
+                udpServ.sendToLastRemote(msgToSend)
+                print("Ligne envoyee: "+msgToSend)
+                utime.sleep_ms(100)
+            udpServ.sendToLastRemote("W#@\r\n")
+    except OSError:
+        print("Echec lors de l'ouverture du fichier Trajectoire_GNSS pour transmission sur la liaison UDP")
+
 cbList = {"none":cbNone,"stopudp":cbStopUDP,"beginudp":cbBeginUDP,"state":cbState,"cameraon":cbCameraOn,
 "cameraoff":cbCameraOff,"loraon":cbLoRaOn,"loraoff":cbLoRaOff,"test":cbTest,"autotest":cbAutoTest,
 "gnsson":cbGNSSon,"gnssoff":cbGNSSoff,"gnsssave":cbGNSSsave}
