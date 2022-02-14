@@ -34,7 +34,7 @@ UART_OBC_BAUD = 115200
 ################################################################
 
 # Server IP address
-localIp = "192.168.4.1"
+localIP = "192.168.4.1"
 
 # Server Port
 tcpPort = 8080
@@ -43,7 +43,7 @@ tcpPort = 8080
 tcpBufferSize = 4096 
 
 # Backlog of Web Server socket
-maxTcpConnection = 5
+maxFailedConnection = 5
 
 ################################################################
 #######################  WIFI CONFIG     #######################
