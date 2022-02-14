@@ -132,7 +132,7 @@ print(config.wifiSsid)
 #udpReceive();
 
 # Init IOs
-general.setupGPIO()
+general.initSystemHardware()
 
 # Init WiFi
 initWifi()
@@ -141,10 +141,11 @@ initWifi()
 general.initLoRa()
 
 general.startUDPServer("192.168.4.1")
-
+x=0
 while True:
-    utime.sleep(5)
-    print("Attempt to read UDP...")
+    utime.sleep(1)
+    x+=1
+    print("#"+str(x)+"Attempt to read UDP...")
     general.udpServ.readPacket()
 # Start WebServer
 initWeb()

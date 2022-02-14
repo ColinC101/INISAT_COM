@@ -1,4 +1,3 @@
-from setuptools import setup
 from udpserver import UdpServer
 from eventsource import EventSource
 import utime
@@ -25,13 +24,13 @@ def initLoRa():
     """
     Init LoRa
     """
-    LoRa.initLoRa()
+    state.loraObj.initLoRa()
 
 def getState():
     """
     Return a string representing the current state of the server
     """
-    return "S" + str(state.camStatus) + "#" + str(int(LoRa.getLoraStatus()))+"#Capteurs OK#"+str(state.consoleInterval)+"#"+str(state.modeGnss)+"@"
+    return "S" + str(state.camStatus) + "#" + str(int(state.loraObj.getLoraStatus()))+"#Capteurs OK#"+str(state.consoleInterval)+"#"+str(state.modeGnss)+"@"
 
 def uartFlush():
     """
@@ -93,7 +92,7 @@ def cbLoRaOn():
     """
     Turn on LoRa
     """
-    LoRa.enableLora()
+    state.loraObj.enableLora()
     print("Liaison LoRa activee")
     return getState()
 
@@ -101,7 +100,7 @@ def cbLoRaOff():
     """
     Turn off LoRa
     """
-    LoRa.disableLora()
+    state.loraObj.disableLora()
     print("Liaison LoRa desactivee")
     return getState()
 
@@ -264,12 +263,12 @@ def commandHandler(command):
     return (-1, "Command Not Found")"""
 
 def toggleLora(paramStruct):
-    loraActive = LoRa.getLoraStatus()
+    loraActive = state.loraObj.getLoraStatus()
     if (paramStruct == () or paramStruct[0]) and not loraActive:
-        LoRa.enableLora()
+        state.loraObj.enableLora()
         return "Liaison LoRa activée"
     elif (paramStruct == () or not paramStruct[0]) and loraActive:
-        LoRa.disableLora()
+        state.loraObj.disableLora()
         return "Liaison LoRa désactivée"
     elif paramStruct[0] and loraActive:
         return "Liaison LoRa déjà active !"
