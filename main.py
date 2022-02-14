@@ -18,7 +18,7 @@ import state
 
 
 #Getting WLAN object
-wlan = WLAN() 
+wlan = WLAN()
 
 ########################### HANDLING ###########################
 
@@ -58,18 +58,11 @@ def macDecoder(macAddr):
         Returns:
             decodedAddr (str): The decoded MAC address
     """
-    pos = 0
-    decodedAddr = ""
-    while pos < len(macAddr):
-        if macAddr[pos] == "\\":
-            pos += 1
-        elif macAddr[pos] == "x":
-            decodedAddr = decodedAddr + macAddr[pos+1:pos+3] + ":"
-            pos += 3
-        else:
-            decodedAddr = decodedAddr + "??:"
-            pos += 1
-    return decodedAddr
+	decodedAddr = ""
+	for i in macAddr:
+		decodedAddr = decodedAddr + '{:02X}'.format(i) + ":"
+	return decodedAddr[:17]
+
 
 
 def getConnectedDevices():
@@ -82,7 +75,10 @@ def getConnectedDevices():
     deviceList = wlan.ap_tcpip_sta_list()
     print("Connected devices :")
     for i in (deviceList):
-        print("MAC: " + macDecoder(i.MAC)  + "|IP : " + i.IP)
+        try:
+            print("MAC: " + macDecoder(i.MAC)  + "|IP : " + i.IP)
+        except:
+            print("MAC: ??.??.??.??.??.?? |IP: " + i.IP)
     return deviceList
     #i.mac.decode('utf-16')
     #b'\xf4B\x8f\x96\xb1\x91'
