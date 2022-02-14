@@ -1,5 +1,7 @@
 import usocket
 import _thread
+import config
+import uos
 
 class TcpServer:
 
@@ -11,8 +13,6 @@ class TcpServer:
         Init the TCP server with the given port
         """
         self.tcpSocket = None
-        self.lastRemoteAddr = ""
-        self.lastRemotePort = 0
         self.cbList = cbList
         self.eventList = eventList
 
@@ -23,22 +23,24 @@ class TcpServer:
         self.tcpSocket = usocket.socket(usocket.AF_INET, usocket.SOCK_STREAM) #Create the socket
         self.tcpSocket.setsockopt(usocket.SOL_SOCKET, usocket.SO_REUSEADDR, 1) #Initialize the socket
         self.tcpSocket.bind((localIP,localPort)) #Bind the socket
-        self.tcpSocket.listen(maxFailedConnection) #Start listening for in coming connections
+        self.tcpSocket.listen(config.maxFailedConnection) #Start listening for in coming connections
 
-    def getLastRemote(self):
-        """
-        Return the last remote IP and UDP port in a tuple: (IP,PORT)
-        """
-        return (self.lastRemoteAddr,self.lastRemotePort)
+    def listen(self):
+        _thread.start_new_thread(self.__accept_loop__,())
 
-            """while True:
-
-                (tcpClientsocket, tcpAddress) = tcpServersocket.accept()
-                tcpClientThread(tcpClientsocket, utime.ticks_ms()) #Start a new thread to handler the new connection
-
-            tcpServersocket.close() #Close the server-side socket"""
-
-    def readRequest(self):
+    def __accept_loop__(self):
+        while True:
+            try:
+                (tcpClientsocket, tcpAddress) = self.tcpSocket.accept()
+                self.readRequest(tcpClientsocket)
+            except OSError as err:
+                if err.errno==114:
+                    print("Connexion reset")
+                else:
+                    print("Exception: errno="+str(err.errno))
+                tcpClientsocket.close()
+            
+    def readRequest(self,clientSocket):
         """
         TCP request handler.
 
@@ -46,11 +48,8 @@ class TcpServer:
                 sentBytes (int): The number of bytes sent in HTTP response
         """
 
-        lstRemote = ""
-        lstRemotePort = 0
-
         #Isolate request arguments as strings
-        (request,(lstRemote,lstRemotePort)) = self.tcpSocket.recvfrom(TcpServer.RECEIVE_BUFFER_SZ)
+        request = str(clientSocket.recv(TcpServer.RECEIVE_BUFFER_SZ))
         splitRequest = str(request).split(" ")
 
         #Default response header
@@ -75,9 +74,9 @@ class TcpServer:
 
             #If event, bind the eventSource and return withour closing the socket
             if requestContent in self.eventList:
-                self.eventList[requestContent].bind(self.tcpSocket)
+                self.eventList[requestContent].bind(clientSocket)
                 http_body = requestContent + " bounded."
-                sentBytes = self.tcpSocket.send(http_header + http_body)
+                sentBytes = clientSocket.send(http_header + http_body)
                 return sentBytes
 
             #If command, return command response
@@ -102,8 +101,8 @@ class TcpServer:
                     http_body = b"Requested content not found .."
 
         #Send the HTTP response and close the connection
-        sentBytes = self.tcpSocket.send(http_header + http_body)
-        self.socket.close()
+        sentBytes = clientSocket.send(http_header + http_body)
+        clientSocket.close()
 
         #Clear string for memory saving (experimental)
         http_header = ""
