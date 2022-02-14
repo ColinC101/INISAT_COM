@@ -1,3 +1,4 @@
+from setuptools import setup
 from udpserver import UdpServer
 from eventsource import EventSource
 import utime
@@ -9,9 +10,6 @@ from ioctl import Ioctl
 import LoRa
 import eventsource
 import state
-
-# Ioctl object for IO interfaces
-ioctlObj = Ioctl()
 
 consoleEvent = EventSource("consoleEvent")
 graphEvent = EventSource("graphEvent")
@@ -39,7 +37,7 @@ def uartFlush():
     """
     Flush the UART-OBC serial link
     """
-    ioctlObj.getObject(Ioctl.KEY_UART_OBC).wait_tx_done(1000)
+    state.ioctlObj.getObject(Ioctl.KEY_UART_OBC).wait_tx_done(1000)
 
 #### BEGIN - UDP COMMANDS ####
 
@@ -78,7 +76,7 @@ def cbCameraOn():
     Turn on the camera
     """
     state.camStatus = 1
-    ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value(1)
+    state.ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value(1)
     print("Camera activee")
     return getState()
 
@@ -87,7 +85,7 @@ def cbCameraOff():
     Turn off the camera
     """
     state.camStatus = 0
-    ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value(0)
+    state.ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value(0)
     print("Camera desactivee")
     return getState()
 
@@ -112,7 +110,7 @@ def cbTest():
     Start an auto test
     """
     uartFlush()
-    ioctlObj.getObject(Ioctl.KEY_UART_OBC).write('A')
+    state.ioctlObj.getObject(Ioctl.KEY_UART_OBC).write('A')
     state.autoTesting = 1
     return getState()
 
@@ -121,7 +119,7 @@ def cbAutoTest():
     Start also an auto test
     """
     uartFlush()
-    ioctlObj.getObject(Ioctl.KEY_UART_OBC).write('A')
+    state.ioctlObj.getObject(Ioctl.KEY_UART_OBC).write('A')
     state.autoTesting = 1
     return "Config autotest lancee .."
 
@@ -165,13 +163,24 @@ def startUDPServer(localIP):
     udpServ = UdpServer(cbList)
     udpServ.bind(localIP,udpPort)
 
+
+def initSystemHardware():
+    """ 
+    Init function for IOs and LoRa
+    """
+    # Ioctl object for IO interfaces
+    state.ioctlObj = Ioctl()
+    setupGPIO()
+
+    # LoRa
+    state.loraObj = LoRa.LoraObject()
+ 
 def setupGPIO():
     """
     Init function used to setup the GPIOs of the board. In particular, it configures output pins
     for leds (status of the board), PWM + direction output pins(inertia wheel),
     the UART connection with OBC, and the control pin for the PyCam.
     """
-    global ioctlObj
     utime.sleep_ms(100)
 
     # PWM init
@@ -195,21 +204,21 @@ def setupGPIO():
     cameraControl = Pin(config.PIN_CAM_CONTROL, mode=Pin.OUT)
 
     # Set the objects in Ioctl
-    ioctlObj.setObject(Ioctl.KEY_PWM_X,pwmX_chan)
-    ioctlObj.setObject(Ioctl.KEY_PWM_Y,pwmY_chan)
-    ioctlObj.setObject(Ioctl.KEY_UART_OBC,uartOBC)
-    ioctlObj.setObject(Ioctl.KEY_LORA_LED,loraLED)
-    ioctlObj.setObject(Ioctl.KEY_WIFI_LED,wifiLED)
-    ioctlObj.setObject(Ioctl.KEY_CAM_CONTROL,cameraControl)
-    ioctlObj.setObject(Ioctl.KEY_DIR_X,dirX)
-    ioctlObj.setObject(Ioctl.KEY_DIR_Y,dirY)
+    state.ioctlObj.setObject(Ioctl.KEY_PWM_X,pwmX_chan)
+    state.ioctlObj.setObject(Ioctl.KEY_PWM_Y,pwmY_chan)
+    state.ioctlObj.setObject(Ioctl.KEY_UART_OBC,uartOBC)
+    state.ioctlObj.setObject(Ioctl.KEY_LORA_LED,loraLED)
+    state.ioctlObj.setObject(Ioctl.KEY_WIFI_LED,wifiLED)
+    state.ioctlObj.setObject(Ioctl.KEY_CAM_CONTROL,cameraControl)
+    state.ioctlObj.setObject(Ioctl.KEY_DIR_X,dirX)
+    state.ioctlObj.setObject(Ioctl.KEY_DIR_Y,dirY)
 
     # Default state
-    ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1.0)
-    ioctlObj.getObject(Ioctl.KEY_PWM_Y).duty_cycle(1.0)
-    ioctlObj.getObject(Ioctl.KEY_LORA_LED).value(0)
-    ioctlObj.getObject(Ioctl.KEY_WIFI_LED).value(0)
-    ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value(0)
+    state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1.0)
+    state.ioctlObj.getObject(Ioctl.KEY_PWM_Y).duty_cycle(1.0)
+    state.ioctlObj.getObject(Ioctl.KEY_LORA_LED).value(0)
+    state.ioctlObj.getObject(Ioctl.KEY_WIFI_LED).value(0)
+    state.ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value(0)
 
     utime.sleep_ms(100)
 
@@ -262,9 +271,7 @@ def testMagneto(paramStruct):
     @arg paramStruct (int, ) : Indicates the test to execute. Accepted values : 1,2,3,4
     """
     tstIdx = paramStruct[0]
-    global ioctlObj
-    global testMag
-    testMag = 1
+    state.testMag = 1
 
     Imax = 150
     t = 34
@@ -288,13 +295,13 @@ def testMagneto(paramStruct):
     # And the value of p
     selectedP = pVal[tstIdx-1]
 
-    while(testMag>0):
+    while(state.testMag>0):
         phaseIdx = 0 # Store the running phase
         for currentDirection in selectedPhasesDir:
             phaseIdx = phaseIdx + 1
             # Set current direction for magneto coupler X and Y
-            ioctlObj.getObject(Ioctl.KEY_DIR_X).value(currentDirection[0])
-            ioctlObj.getObject(Ioctl.KEY_DIR_Y).value(currentDirection[1])
+            state.ioctlObj.getObject(Ioctl.KEY_DIR_X).value(currentDirection[0])
+            state.ioctlObj.getObject(Ioctl.KEY_DIR_Y).value(currentDirection[1])
 
             jMin = (Imax+t) if ((tstIdx == 2) and (phaseIdx == 4)) else Imax
             for j in range(255,(jMin-1),-t):
@@ -307,17 +314,17 @@ def testMagneto(paramStruct):
                     Sy = j/255.0
 
                 # Set the PWM duty cycle for magneto coupler X and Y
-                ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(Sx)
-                ioctlObj.getObject(Ioctl.KEY_PWM_Y).duty_cycle(Sy)
+                state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(Sx)
+                state.ioctlObj.getObject(Ioctl.KEY_PWM_Y).duty_cycle(Sy)
                 utime.sleep_ms(selectedP)
     utime.sleep_ms(100)
 
     # Event source fin --
     # UDP fin
     utime.sleep_ms(100)
-    ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1.0)
+    state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1.0)
     utime.sleep_ms(100)
-    ioctlObj.getObject(Ioctl.KEY_PWM_Y).duty_cycle(1.0)
+    state.ioctlObj.getObject(Ioctl.KEY_PWM_Y).duty_cycle(1.0)
     utime.sleep_ms(100)
 
     print("Stop test magneto-coupler "+str(tstIdx))
@@ -334,7 +341,6 @@ def stopTestMag(paramStruct):
     """
     Stops all running tests on the magneto-couplers
     """
-    global testMag
-    testMag = 0
+    state.testMag = 0
     demagEvent.send("fct_fin", "B", utime.ticks_ms())
     return "Arrêt du test ..."
