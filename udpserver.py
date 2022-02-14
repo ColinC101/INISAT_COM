@@ -38,24 +38,30 @@ class UdpServer:
         """
         lstRemote = ""
         lstRemotePort = 0
-        (bytesReceived,(lstRemote,lstRemotePort)) = self.udpSocket.recvfrom(UdpServer.RECEIVE_BUFFER_SZ)
-        if bytesReceived>0:
-            self.lastRemoteAddr = lstRemote
-            self.lastRemotePort = lstRemotePort
-            udpCommand = bytesReceived.decode('utf-8')
-            print("Trame UDP recue de : "+self.lastRemoteAddr)
-            print("Taille : "+len(udpCommand))
-            print("Donnees : "+udpCommand)
+        try:
+            (bytesReceived,(lstRemote,lstRemotePort)) = self.udpSocket.recvfrom(UdpServer.RECEIVE_BUFFER_SZ)
+        except OSError as err:
+            if err.errno == 11:
+                print("No data")
+            return
+        print("Data!")
+    
+        self.lastRemoteAddr = lstRemote
+        self.lastRemotePort = lstRemotePort
+        udpCommand = bytesReceived.decode('utf-8')
+        print("Trame UDP recue de : "+self.lastRemoteAddr)
+        print("Taille : "+str(len(udpCommand)))
+        print("Donnees : "+udpCommand)
 
-            udpCommand = udpCommand.strip().lower()
+        udpCommand = udpCommand.strip().lower()
 
-            if udpCommand in self.cbList:
-                # Execute the command
-                responseMsg = self.cbList[udpCommand]()
-                # Send the response
-                self.sendTo(responseMsg,(self.lastRemoteAddr,self.lastRemotePort))
-            else:
-                print("UDP command '"+udpCommand+"' is ignored (no associated callback)")            
+        if udpCommand in self.cbList:
+            # Execute the command
+            responseMsg = self.cbList[udpCommand]()
+            # Send the response
+            self.sendTo(responseMsg,(self.lastRemoteAddr,self.lastRemotePort))
+        else:
+            print("UDP command '"+udpCommand+"' is ignored (no associated callback)")            
 
     def getLastRemote(self):
         """
