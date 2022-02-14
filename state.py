@@ -2,7 +2,7 @@ def init():
     """
     Init state variables
     """
-    global consoleConfig,autoTesting,consoleInterval,modeGnss,camStatus,udpCom,testMag
+    global consoleConfig,autoTesting,consoleInterval,modeGnss,camStatus,udpCom,testMag,ioctlObj,loraObj
 
     # Console configuration
     consoleConfig = "00000000000000"
@@ -24,3 +24,7 @@ def init():
 
     # Active magneto-coupler test
     testMag = 0
+
+    ioctlObj = None
+
+    loraObj = None
