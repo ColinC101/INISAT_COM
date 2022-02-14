@@ -164,6 +164,355 @@ def cbGNSSsave():
 
 ## END - ARTH INERFACE COMMAND ##
 
+## BEGIN - RAW UDP COMMANDS ##
+
+def cbEPSon():
+    """
+    Activate EPS logging in the console
+    """
+    state.consoleConfig[aliases.CONSCONFIG_EPS]="1"
+    return "Config epson recue .."
+
+def cbEPSoff():
+    """
+    Deactivate EPS logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_EPS]="0"
+    return "Config epsoff recue .."
+
+def cbMPLon():
+    """
+    Activate MPL logging 
+    """
+    state.consoleConfig[aliases.CONSCONFIG_TEMPERATURE]="1"
+    state.consoleConfig[aliases.CONSCONFIG_ALTITUDE]="1"
+    state.consoleConfig[aliases.CONSCONFIG_PRESSION]="1"
+    return "Config mplon recue .."
+
+def cbMPLoff():
+    """
+    Deactivate MPL logging 
+    """
+    state.consoleConfig[aliases.CONSCONFIG_TEMPERATURE]="0"
+    state.consoleConfig[aliases.CONSCONFIG_ALTITUDE]="0"
+    state.consoleConfig[aliases.CONSCONFIG_PRESSION]="0"
+    return "Config mploff recue .."
+
+def cbTempOn():
+    """
+    Activate temperature logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_TEMPERATURE]="1"
+    return "Config tempon recue .."
+
+def cbTempOff():
+    """
+    Deactivate temperature logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_TEMPERATURE]="0"
+    return "Config tempoff recue .."
+
+def cbAltOn():
+    """
+    Activate altitude logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_ALTITUDE]="1"
+    return "Config alton recue .."
+
+def cbAltOff():
+    """
+    Deactivate altitude logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_ALTITUDE]="0"
+    return "Config altoff recue .."
+
+def cbPresOn():
+    """
+    Activate pressure logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_PRESSION]="1"
+    return "Config preson recue .."
+
+def cbPresOff():
+    """
+    Deactivate pressure logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_PRESSION]="0"
+    return "Config presoff recue .."
+
+def cbBNOon():
+    """
+    Activate BNO logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_EULER]="1"
+    state.consoleConfig[aliases.CONSCONFIG_QUATERNION]="1"
+    state.consoleConfig[aliases.CONSCONFIG_ANGULAR_SPEED]="1"
+    state.consoleConfig[aliases.CONSCONFIG_ACCELERATION]="1"
+    state.consoleConfig[aliases.CONSCONFIG_MAGNETIC_FIELD]="1"
+    state.consoleConfig[aliases.CONSCONFIG_LINEAR_ACCELERATION]="1"
+    state.consoleConfig[aliases.CONSCONFIG_GRAVITY]="1"
+    return "Config bnoon recue .."
+
+def cbBNOoff():
+    """
+    Deactivate BNO logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_EULER]="0"
+    state.consoleConfig[aliases.CONSCONFIG_QUATERNION]="0"
+    state.consoleConfig[aliases.CONSCONFIG_ANGULAR_SPEED]="0"
+    state.consoleConfig[aliases.CONSCONFIG_ACCELERATION]="0"
+    state.consoleConfig[aliases.CONSCONFIG_MAGNETIC_FIELD]="0"
+    state.consoleConfig[aliases.CONSCONFIG_LINEAR_ACCELERATION]="0"
+    state.consoleConfig[aliases.CONSCONFIG_GRAVITY]="0"
+    return "Config bnooff recue .."
+
+def cbEulerOn():
+    """
+    Activate Euler logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_EULER]="1" 
+    return "Config euleron recue .."
+
+def cbEulerOff():
+    """
+    Deactivate Euler logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_EULER]="0" 
+    return "Config euleroff recue .."
+
+def cbQuatOn():
+    """
+    Activate quaternion logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_QUATERNION]="1" 
+    return "Config quaton recue .."
+
+def cbQuatOff():
+    """
+    Deactivate quaternion logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_QUATERNION]="0" 
+    return "Config quatoff recue .."
+
+def cbVangOn():
+    """
+    Activate angular speed logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_ANGULAR_SPEED]="1" 
+    return "Config vangon recue .."
+
+def cbVangOff():
+    """
+    Deactivate angular speed logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_ANGULAR_SPEED]="0" 
+    return "Config vangoff recue .."
+
+def cbAccOn():
+    """
+    Activate acceleration logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_ACCELERATION]="1" 
+    return "Config accon recue .."
+
+def cbAccOff():
+    """
+    Deactivate acceleration logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_ACCELERATION]="0" 
+    return "Config accoff recue .."
+
+def cbMagOn():
+    """
+    Activate magnetic field logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_MAGNETIC_FIELD]="1" 
+    return "Config magon recue .."
+
+def cbMagOff():
+    """
+    Deactivate magnetic field logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_MAGNETIC_FIELD]="0" 
+    return "Config magoff recue .."
+
+def cbAccLinOn():
+    """
+    Activate linear acceleration logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_LINEAR_ACCELERATION]="1" 
+    return "Config acclnon recue .."
+
+def cbAccLinOff():
+    """
+    Deactivate linear acceleration logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_LINEAR_ACCELERATION]="0" 
+    return "Config acclnoff recue .."
+
+def cbGravOn():
+    """
+    Activate gravity logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_GRAVITY]="1" 
+    return "Config gravon recue .."
+
+def cbGravOff():
+    """
+    Deactivate gravity logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_GRAVITY]="0" 
+    return "Config gravoff recue .."
+
+def cbLumiOn():
+    """
+    Activate luminance logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_LUMINANCE]="1"
+    return "Config lumion recue .."
+
+def cbLumiOff():
+    """
+    Deactivate luminance logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_LUMINANCE]="0"
+    return "Config lumioff recue .."
+
+def cbLocOn():
+    """
+    Activate location (GNSS) logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_GNSS]="1"
+    return "Config locon recue .."
+    
+def cbLocOff():
+    """
+    Deactivate location (GNSS) logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_GNSS]="0"
+    return "Config locoff recue .."
+
+def cbNMEAon():
+    """
+    Activate NMEA logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_NMEA]="1"
+    return "Config nmeaon recue .."
+
+def cbNMEAoff():
+    """
+    Deactivate NMEA logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_NMEA]="0"
+    return "Config nmeaoff recue .."
+
+def cbAllOn():
+    """
+    Activate all logs
+    """
+    state.consoleConfig = aliases.CONSOLE_CONFIG_ENABLED
+    return "Config allon recue .."
+
+def cbAllOff():
+    """
+    Deactivate all logs
+    """
+    state.consoleConfig = aliases.CONSOLE_CONFIG_DISABLED
+    return "Config alloff recue .."
+
+def cbLoraState():
+    """
+    Return LoRa state
+    """ 
+    if state.loraObj.getLoraStatus():
+        return "Etat LORA est : ON"
+    else:
+        return "Etat LORA est : OFF"
+
+def cbCameraState():
+    """
+    Return camera state
+    """ 
+    if state.camStatus == 1:
+        return "Etat CAM est : ON"
+    else:
+        return "Etat CAM est : OFF"
+
+def cbDemagOn():
+    """
+    Start degaussing
+    """
+    state.deMag = 1
+    return "Config dmagon recue, veuillez attendre la fin .."
+
+def cbMagt1():
+    """
+    Start test 1 for magneto-coupler
+    """
+    # state.testMag = 1
+    return "Config magt1 recue .. COMMANDE DESACTIVEE POUR L'INSTANT .."
+
+def cbMagt2():
+    """
+    Start test 2 for magneto-coupler
+    """
+    # state.testMag = 2
+    return "Config magt2 recue .. COMMANDE DESACTIVEE POUR L'INSTANT .."
+
+def cbMagt3():
+    """
+    Start test 3 for magneto-coupler
+    """
+    # state.testMag = 3
+    return "Config magt3 recue .. COMMANDE DESACTIVEE POUR L'INSTANT .."
+
+def cbMagt4():
+    """
+    Start test 4 for magneto-coupler
+    """
+    # state.testMag = 4
+    return "Config magt4 recue .. COMMANDE DESACTIVEE POUR L'INSTANT .."
+    
+def cbStopMgt():
+    """
+    Stop magneto-coupler test
+    """
+    state.testMag = 0
+    return "Config stpmgt recue, veuillez attendre la fin .."
+
+def cbHelp():
+    """
+    Return help message
+    """
+    try:
+        with open("help.txt", 'rb') as infile:
+            fileLines = infile.read()
+            infile.close()
+            return fileLines.decode("utf-8")
+    except OSError:
+        print("Echec lors de l'ouverture du fichier d'aide")
+
+def cbCamOn():
+    """
+    Turn on the camera
+    """
+    state.camStatus = 1
+    state.ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value(1)
+    print("Camera activee")
+    return "Config camon recue .."
+
+def cbCamOff():
+    """
+    Turn off the camera
+    """
+    state.camStatus = 0
+    state.ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value(0)
+    print("Camera desactivee")
+    return "Config camoff recue .."
+
+
+## END - RAW UDP COMMANDS ##
+
 #### END - UDP COMMANDS #####
 
 def gnssTransmitUDP():
@@ -175,7 +524,11 @@ def gnssTransmitUDP():
             fileLines = infile.readlines()
             msgToSend = ""
             for line in fileLines:
-                msgToSend = "W"+line.decode("utf-8")+"@"+"\r\n"
+                strLine  = line.decode("utf-8")
+                if strLine[-1] == "\n":
+                    # Remove trailing new line if it exists
+                    strLine = strLine[:-1]     
+                msgToSend = "W"+strLine+"@"+"\r\n"
                 udpServ.sendToLastRemote(msgToSend)
                 print("Ligne envoyee: "+msgToSend)
                 utime.sleep_ms(100)

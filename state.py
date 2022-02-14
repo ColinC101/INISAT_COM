@@ -4,7 +4,7 @@ def init():
     """
     Init state variables
     """
-    global consoleConfig,autoTesting,consoleInterval,modeGnss,camStatus,udpCom,testMag,ioctlObj,loraObj,gnssStartTime,chartsConfig
+    global consoleConfig,autoTesting,consoleInterval,modeGnss,camStatus,udpCom,testMag,ioctlObj,loraObj,gnssStartTime,chartsConfig,deMag
 
     # Console configuration
     consoleConfig = aliases.CONSOLE_CONFIG_DISABLED
@@ -24,8 +24,11 @@ def init():
     # Enable / Disable UDP com
     udpCom = False
 
-    # Active magneto-coupler test
+    # Active magneto-coupler test (when set to 1)
     testMag = 0
+
+    # Activate degaussing (when set to 1)
+    deMag = 0
 
     # IOCTL
     ioctlObj = None
