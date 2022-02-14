@@ -76,3 +76,10 @@ class UdpServer:
         @arg remote((str,int)) : (the destination IP address,the destination UDP port)
         """
         self.udpSocket.sendto(bytes(msg,"utf-8"),remote)
+
+    def sendToLastRemote(self,msg):
+        """
+        Send a UDP packet to the last remote machine
+        @arg msg(str): the content of the UDP packet
+        """
+        self.udpSocket.sendto(bytes(msg,"utf-8"),(self.lastRemoteAddr,self.lastRemotePort))
