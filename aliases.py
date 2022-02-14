@@ -162,3 +162,21 @@ CONSCONFIG_GRAVITY = 10
 CONSCONFIG_LUMINANCE = 11
 CONSCONFIG_GNSS = 12
 CONSCONFIG_NMEA = 13
+
+#######################################
+############  GNSS   ##################
+#######################################
+MODE_GNSS_FINISHED = 0
+MODE_GNSS_RUNNING = 1
+MODE_GNSS_STOPPED = 2
+
+#######################################
+############  CONSOLE CONFIG ##########
+#######################################
+CONSOLE_CONFIG_DISABLED = "00000000000000"
+CONSOLE_CONFIG_ENABLED = "11111111111111"
+
+#######################################
+############  CHART CONFIG ############
+#######################################
+CHARTS_CONFIG_DISABLED = "000000"
