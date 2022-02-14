@@ -1,11 +1,13 @@
+import aliases
+
 def init():
     """
     Init state variables
     """
-    global consoleConfig,autoTesting,consoleInterval,modeGnss,camStatus,udpCom,testMag,ioctlObj,loraObj
+    global consoleConfig,autoTesting,consoleInterval,modeGnss,camStatus,udpCom,testMag,ioctlObj,loraObj,gnssStartTime,chartsConfig
 
     # Console configuration
-    consoleConfig = "00000000000000"
+    consoleConfig = aliases.CONSOLE_CONFIG_DISABLED
 
     # Auto test status
     autoTesting = 0
@@ -25,6 +27,14 @@ def init():
     # Active magneto-coupler test
     testMag = 0
 
+    # IOCTL
     ioctlObj = None
 
+    # LORA
     loraObj = None
+
+    # Timing Management
+    gnssStartTime = aliases.MODE_GNSS_FINISHED
+
+    # Charts configuration
+    chartsConfig = aliases.CHARTS_CONFIG_DISABLED
