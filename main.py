@@ -47,6 +47,7 @@ wifiChannel = 1 #Channel for Wifi connection
 wifiAntenna = WLAN.INT_ANT #Select between integrated and external antenna (WLAN.EXT_ANT)
 wifiBandwidth = WLAN.HT40 #Bandwith to use for Wifi, 20MHz or 40MHz
 wifiMaxTxPower = 19.5 #WiFi power in dBm
+
 #wifiProtocol =
 maxTcpConnection = 5
 
@@ -60,24 +61,59 @@ def convertTxPower(dBmValue):
 
 
 def initWifi():
+    """
+    Initiate the WiFi communication.
+    """
     print("Initializing WiFi Access Point ...")
     wlan.init(mode=wifiMode, ssid=wifiSsid, auth=wifiAuth, channel=wifiChannel, antenna=wifiAntenna, bandwidth=wifiBandwidth, max_tx_pwr=78)
               #max_tx_pwr=convertTxPower(wifiMaxTxPower))
               #protocol=
-    print("WLAN initialized")
-    wlan.ifconfig(id=1)#, config='dhcp') #Config in AP mode, with DHCP auto-negociation
+    print("WLAN initialized.")
+    wlan.ifconfig(id=1)#Config in AP mode, with DHCP auto-negociation
     time.sleep(1)
-    print("Success")
+    print("WiFi ready.")
 
 
 def disableWifi():
+    """
+    Disable the WiFi communication.
+    """
     wlan.deinit()
+    print("WiFi disabled.")
+
+def macDecoder(macAddr):
+    """
+    Decode the MAC address returned by WiFi module,
+    as encoding is not standard.
+
+        Returns:
+            decodedAddr (str): The decoded MAC address
+    """
+    pos = 0
+    decodedAddr = ""
+    while pos < len(macAddr):
+        if macAddr[pos] == "\\":
+            pos += 1
+        elif macAddr[pos] == "x":
+            decodedAddr = decodedAddr + macAddr[pos+1:pos+3] + ":"
+            pos += 3
+        else:
+            decodedAddr = decodedAddr + "??:"
+            pos += 1
+    return decodedAddr
+
 
 def getConnectedDevices():
-    print("Connected devices :")
+    """
+    Display information about all devices connected to the board in WiFi.
+
+        Returns:
+            deviceList (list): A list of MAC/IP addresses of connected devices
+    """
     deviceList = wlan.ap_tcpip_sta_list()
+    print("Connected devices :")
     for i in (deviceList):
-        print("MAC: " + "000"  + "|IP : " + i.IP)
+        print("MAC: " + macDecoder(i.MAC)  + "|IP : " + i.IP)
     return deviceList
     #i.mac.decode('utf-16')
     #b'\xf4B\x8f\x96\xb1\x91'
@@ -91,6 +127,7 @@ def getConnectedDevices():
 #######################        UDP       #######################
 ################################################################
 
+"""
 def udpSend():
     udpIp = "192.168.4.2"
     udpPort = 55057
@@ -110,21 +147,33 @@ def udpReceive():
     while True:
         data, addr = sock.recvfrom(1024) #Buffer size
         print("Received UDP mdg : %s" % data)
-
+"""
 
 ################################################################
 #######################        WEB       #######################
 ################################################################
 
 
-def tcpClientThread(tcpClientsocket, n):
+def tcpClientThread(tcpClientSocket, threadNumber):
     """
-    TCP request handler
+    TCP request handler.
+
+        Parameters:
+            tcpClientSocket (socket): The socket of the web client
+            threadNumber (int): The thread number
+
+        Returns:
+            sentBytes (int): The number of bytes sent in HTTP response
     """
-    request = str(tcpClientsocket.recv(tcpBufferSize))
+
+    #Isolate request arguments as strings
+    request = str(tcpClientSocket.recv(tcpBufferSize))
     splitRequest = request.split(" ")
 
+    #Default response header
     http_header = b"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection:close \r\n\r\n"
+
+    #List of possible response file types
     mimeTypeList = [(".html", b"text/html"),
                     (".css", b"text/css"),
                     (".jpg", b"image/jpeg"),
@@ -133,22 +182,28 @@ def tcpClientThread(tcpClientsocket, n):
                     (".woff", b"font/woff"),
                     (".woff2", b"font/woff2")]
 
-    if len(splitRequest) <= 1:
+    if len(splitRequest) <= 1: #If request is empty
         http_body = b"Invalid request, ignoring .."
     else:
+        #Get the requested ressource
         requestContent = "index.html" if splitRequest[1]=="/" else splitRequest[1][1:]
 
+        #Check if the request is a command or an asynchronous event
         isCommand = general.commandHandler(requestContent)
-        isEvent = general.eventHandler(requestContent, tcpClientsocket)
-        if isCommand[0] == 1:
-            http_body = isCommand[1]
-        elif isEvent[0] == 1:
-            return
-        else:
+        isEvent = general.eventHandler(requestContent, tcpClientSocket)
+
+        if isCommand[0] == 1: #If command
+            http_body = isCommand[1]  #Return the answer of the command
+        elif isEvent[0] == 1: #If event
+            return 0 #Return nothing (the event handler is in charge of responding)
+        else: #If file
+
+            #Get the file type
             mimeType = b"application/octet-string"
             for i in mimeTypeList:
                 if i[0] in requestContent:
                     mimeType = i[1]
+            #Read the file content in binary mode
             try:
                 with open("web/" + requestContent, 'rb') as infile:
                     http_header = b"HTTP/1.1 200 OK\r\nContent-Type: " + mimeType + b"\r\nContent-Lenght: " + str(uos.stat("web/" + requestContent)[6]) + b"\r\nConnection:close \r\n\r\n"
@@ -156,25 +211,32 @@ def tcpClientThread(tcpClientsocket, n):
                     infile.close()
             except OSError:
                 http_body = b"Requested file : not found .."
-    tcpClientsocket.send(http_header + http_body)
+
+    #Send the HTTP response and close the connection
+    sentBytes = tcpClientSocket.send(http_header + http_body)
+    tcpClientSocket.close()
+
+    #Clear string for memory saving (experimental)
     http_header = ""
     http_body = ""
-    tcpClientsocket.close()
+
+    return sentBytes
 
 def initWeb():
     """
-    Initiate TCP connection for Web server communication
+    Initiate TCP connection for Web server communication.
     """
-    tcpServersocket = usocket.socket(usocket.AF_INET, usocket.SOCK_STREAM)
-    tcpServersocket.setsockopt(usocket.SOL_SOCKET, usocket.SO_REUSEADDR, 1)
-    tcpServersocket.bind((localIp, tcpPort))
-    tcpServersocket.listen(maxTcpConnection)
+    tcpServersocket = usocket.socket(usocket.AF_INET, usocket.SOCK_STREAM) #Create the socket
+    tcpServersocket.setsockopt(usocket.SOL_SOCKET, usocket.SO_REUSEADDR, 1) #Initialize the socket
+    tcpServersocket.bind((localIp, tcpPort)) #Bind the socket
+    tcpServersocket.listen(maxTcpConnection) #Start listening for in coming connections
 
     while True:
-        (tcpClientsocket, tcpAddress) = tcpServersocket.accept()
-        tcpClientThread(tcpClientsocket, utime.ticks_ms())
 
-    tcpServersocket.close()
+        (tcpClientsocket, tcpAddress) = tcpServersocket.accept()
+        tcpClientThread(tcpClientsocket, utime.ticks_ms()) #Start a new thread to handler the new connection
+
+    tcpServersocket.close() #Close the server-side socket
 
 ################################################################
 #######################     EXECUTION    #######################
