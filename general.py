@@ -8,6 +8,7 @@ from machine import Pin
 from ioctl import Ioctl
 import LoRa
 import eventsource
+import state
 
 # Ioctl object for IO interfaces
 ioctlObj = Ioctl()
@@ -32,7 +33,7 @@ def getState():
     """
     Return a string representing the current state of the server
     """
-    return "S" + str(camStatus) + "#" + str(int(LoRa.getLoraStatus()))+"#Capteurs OK#"+str(consoleInterval)+"#"+str(modeGnss)+"@"
+    return "S" + str(state.camStatus) + "#" + str(int(LoRa.getLoraStatus()))+"#Capteurs OK#"+str(state.consoleInterval)+"#"+str(state.modeGnss)+"@"
 
 def uartFlush():
     """
@@ -47,24 +48,21 @@ def cbNone():
     """
     Disable UDP communication
     """
-    global udpCom
-    udpCom = False
+    state.udpCom = False
     return ""
 
 def cbStopUDP():
     """
     Disable UDP communication
     """
-    global udpCom
-    udpCom = False
+    state.udpCom = False
     return "Fin de la communication avec INISAT 2U "
 
 def cbBeginUDP():
     """
     Enable UDP communication
     """
-    global udpCom
-    udpCom = True
+    state.udpCom = True
     return "Client enregistre, debut de la communication avec INISAT 2U"
 
 def cbState():
@@ -79,8 +77,7 @@ def cbCameraOn():
     """
     Turn on the camera
     """
-    global camStatus
-    camStatus = 1
+    state.camStatus = 1
     ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value(1)
     print("Camera activee")
     return getState()
@@ -89,8 +86,7 @@ def cbCameraOff():
     """
     Turn off the camera
     """
-    global camStatus
-    camStatus = 0
+    state.camStatus = 0
     ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value(0)
     print("Camera desactivee")
     return getState()
@@ -115,28 +111,25 @@ def cbTest():
     """
     Start an auto test
     """
-    global autoTesting
     uartFlush()
     ioctlObj.getObject(Ioctl.KEY_UART_OBC).write('A')
-    autoTesting = 1
+    state.autoTesting = 1
     return getState()
 
 def cbAutoTest():
     """
     Start also an auto test
     """
-    global autoTesting
     uartFlush()
     ioctlObj.getObject(Ioctl.KEY_UART_OBC).write('A')
-    autoTesting = 1
+    state.autoTesting = 1
     return "Config autotest lancee .."
 
 def cbGNSSon():
     """
     Activate GNSS
     """
-    global modeGnss
-    modeGnss = 1
+    state.modeGnss = 1
     uartFlush()
     # TODO
     return getState()
@@ -145,16 +138,14 @@ def cbGNSSoff():
     """
     Disable GNSS
     """
-    global modeGnss
-    modeGnss = 2
+    state.modeGnss = 2
     return getState()
 
 def cbGNSSsave():
     """
     Save GNSS data
     """
-    global modeGnss
-    modeGnss = 0
+    state.modeGnss = 0
     # TODO
     return getState()
 
@@ -172,7 +163,7 @@ def startUDPServer(localIP):
     "cameraoff":cbCameraOff,"loraon":cbLoRaOn,"loraoff":cbLoRaOff,"test":cbTest,"autotest":cbAutoTest,
     "gnsson":cbGNSSon,"gnssoff":cbGNSSoff,"gnsssave":cbGNSSsave}
     udpServ = UdpServer(cbList)
-    udpServ.listen(localIP,udpPort)
+    udpServ.bind(localIP,udpPort)
 
 def setupGPIO():
     """
