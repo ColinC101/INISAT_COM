@@ -12,7 +12,6 @@ import usocket
 import _thread
 #import http.server
 #import socketserver
-import LoRa
 import general
 
 import micropython
@@ -30,9 +29,6 @@ localIp = "192.168.4.1"
 tcpPort = 8080
 
 tcpBufferSize = 4096 #Reception buffer for TCP requests
-
-loraState = False
-camState = False
 
 ################################################################
 #######################       WIFI       #######################
@@ -196,15 +192,19 @@ print(wifiSsid)
 #udpReceive();
 #print("1:" + str(micropython.stack_use()))
 print("1a:" + str(micropython.mem_info()))
+# Init IOs
 general.setupGPIO()
 #print("2:" + str(micropython.stack_use()))
 print("2a:" + str(micropython.mem_info()))
+# Init WiFi
 initWifi()
 #print("3:" + str(micropython.stack_use()))
 print("3a:" + str(micropython.mem_info()))
-initWeb()
-#LoRa.initLoRa()
 
-#LoRa.loopSend()
+# Init LoRa
+general.initLoRa()
+
+# Start WebServer
+initWeb()
 
 print("End Main")

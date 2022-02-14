@@ -1,3 +1,5 @@
+from udpserver import UdpServer
+from eventsource import EventSource
 import utime
 import config
 from machine import PWM
@@ -8,17 +10,193 @@ import LoRa
 import eventsource
 
 
+# Console configuration
+consConfig = "00000000000000"
+
+# Auto test status
+autoTesting = 0
+
+# Console updating interval (ms)
+consoleInterval = 5000
+
+# Enable / Disable GNSS
+modeGnss = 0
+
+# Enable / Disable camera
+camStatus = 0
+
+# Enable / Disable UDP com
+udpCom = False
+
 # Active magneto-coupler test
 testMag = 0
 
 # Ioctl object for IO interfaces
 ioctlObj = Ioctl()
 
-consoleEvent = eventsource.EventSource("consoleEvent")
-graphEvent = eventsource.EventSource("graphEvent")
-interfaceEvent = eventsource.EventSource("interfaceEvent")
-autotestEvent = eventsource.EventSource("autotestEvent")
-demagEvent = eventsource.EventSource("demagEvent")
+consoleEvent = EventSource("consoleEvent")
+graphEvent = EventSource("graphEvent")
+interfaceEvent = EventSource("interfaceEvent")
+autotestEvent = EventSource("autotestEvent")
+demagEvent = EventSource("demagEvent")
+
+# UDP Server object
+udpServ = None
+udpPort = 9991
+
+
+
+def initLoRa():
+    """
+    Init LoRa
+    """
+    LoRa.initLoRa()
+
+def getState():
+    """
+    Return a string representing the current state of the server
+    """
+    return "S" + str(camStatus) + "#" + str(int(LoRa.getLoraStatus()))+"#Capteurs OK#"+str(consoleInterval)+"#"+str(modeGnss)+"@"
+
+def uartFlush():
+    """
+    Flush the UART-OBC serial link
+    """
+    ioctlObj.getObject(Ioctl.KEY_UART_OBC).wait_tx_done(1000)
+
+#### BEGIN - UDP COMMANDS ####
+
+## BEGIN - UDP INTERFACE COMMANDS ##
+def cbNone():
+    """
+    Disable UDP communication
+    """
+    global udpCom
+    udpCom = False
+    return ""
+
+def cbStopUDP():
+    """
+    Disable UDP communication
+    """
+    global udpCom
+    udpCom = False
+    return "Fin de la communication avec INISAT 2U "
+
+def cbBeginUDP():
+    """
+    Enable UDP communication
+    """
+    global udpCom
+    udpCom = True
+    return "Client enregistre, debut de la communication avec INISAT 2U"
+
+def cbState():
+    """
+    Send the current state of the server, over UDP
+    """
+    return getState()
+## END - UDP INTERFACE COMMAND ##
+
+## BEGIN - ARTH INERFACE COMMAND ##
+def cbCameraOn():
+    """
+    Turn on the camera
+    """
+    global camStatus
+    camStatus = 1
+    ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value(1)
+    print("Camera activee")
+    return getState()
+
+def cbCameraOff():
+    """
+    Turn off the camera
+    """
+    global camStatus
+    camStatus = 0
+    ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value(0)
+    print("Camera desactivee")
+    return getState()
+
+def cbLoRaOn():
+    """
+    Turn on LoRa
+    """
+    LoRa.enableLora()
+    print("Liaison LoRa activee")
+    return getState()
+
+def cbLoRaOff():
+    """
+    Turn off LoRa
+    """
+    LoRa.disableLora()
+    print("Liaison LoRa desactivee")
+    return getState()
+
+def cbTest():
+    """
+    Start an auto test
+    """
+    global autoTesting
+    uartFlush()
+    ioctlObj.getObject(Ioctl.KEY_UART_OBC).write('A')
+    autoTesting = 1
+    return getState()
+
+def cbAutoTest():
+    """
+    Start also an auto test
+    """
+    global autoTesting
+    uartFlush()
+    ioctlObj.getObject(Ioctl.KEY_UART_OBC).write('A')
+    autoTesting = 1
+    return "Config autotest lancee .."
+
+def cbGNSSon():
+    """
+    Activate GNSS
+    """
+    global modeGnss
+    modeGnss = 1
+    uartFlush()
+    # TODO
+    return getState()
+
+def cbGNSSoff():
+    """
+    Disable GNSS
+    """
+    global modeGnss
+    modeGnss = 2
+    return getState()
+
+def cbGNSSsave():
+    """
+    Save GNSS data
+    """
+    global modeGnss
+    modeGnss = 0
+    # TODO
+    return getState()
+
+## END - ARTH INERFACE COMMAND ##
+
+
+#### END - UDP COMMANDS #####
+
+def startUDPServer(localIP):
+    """
+    Start the UDP Server
+    """
+    global udpServ
+    cbList = {"none":cbNone,"stopudp":cbStopUDP,"beginudp":cbBeginUDP,"state":cbState,"cameraon":cbCameraOn,
+    "cameraoff":cbCameraOff,"loraon":cbLoRaOn,"loraoff":cbLoRaOff,"test":cbTest,"autotest":cbAutoTest,
+    "gnsson":cbGNSSon,"gnssoff":cbGNSSoff,"gnsssave":cbGNSSsave}
+    udpServ = UdpServer(cbList)
+    udpServ.listen(localIP,udpPort)
 
 def setupGPIO():
     """
@@ -58,6 +236,13 @@ def setupGPIO():
     ioctlObj.setObject(Ioctl.KEY_CAM_CONTROL,cameraControl)
     ioctlObj.setObject(Ioctl.KEY_DIR_X,dirX)
     ioctlObj.setObject(Ioctl.KEY_DIR_Y,dirY)
+
+    # Default state
+    ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1.0)
+    ioctlObj.getObject(Ioctl.KEY_PWM_Y).duty_cycle(1.0)
+    ioctlObj.getObject(Ioctl.KEY_LORA_LED).value(0)
+    ioctlObj.getObject(Ioctl.KEY_WIFI_LED).value(0)
+    ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value(0)
 
     utime.sleep_ms(100)
 
