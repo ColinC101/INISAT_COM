@@ -10,45 +10,15 @@ import socket
 #WEB
 import usocket
 import _thread
-#import http.server
-#import socketserver
 import general
-
 import micropython
-
-#import utime
-#tics_ms()
-
-print("Begin Main")
-
-################################################################
-#######################  GLOBAL CONFIG   #######################
-################################################################
-
-localIp = "192.168.4.1"
-tcpPort = 8080
+# CONFIG
+import config
+import state
 
 
-################################################################
-#######################       WIFI       #######################
-################################################################
-
-#   https://docs.pycom.io/firmwareapi/pycom/network/wlan/#app
-
-############################ CONFIG ############################
-
-wlan = WLAN() #Getting WLAN object
-
-wifiMode = WLAN.AP #Wifi mode (AP, STA or STA_AP)
-wifiSsid = 'INISAT' #SSID of Wifi AP
-wifiAuth=(WLAN.WPA2, "123456789") #Authentification key for Wifi AP
-wifiChannel = 1 #Channel for Wifi connection
-wifiAntenna = WLAN.INT_ANT #Select between integrated and external antenna (WLAN.EXT_ANT)
-wifiBandwidth = WLAN.HT40 #Bandwith to use for Wifi, 20MHz or 40MHz
-wifiMaxTxPower = 19.5 #WiFi power in dBm
-
-#wifiProtocol =
-maxTcpConnection = 5
+#Getting WLAN object
+wlan = WLAN() 
 
 ########################### HANDLING ###########################
 
@@ -64,7 +34,7 @@ def initWifi():
     Initiate the WiFi communication.
     """
     print("Initializing WiFi Access Point ...")
-    wlan.init(mode=wifiMode, ssid=wifiSsid, auth=wifiAuth, channel=wifiChannel, antenna=wifiAntenna, bandwidth=wifiBandwidth, max_tx_pwr=78)
+    wlan.init(mode=config.wifiMode, ssid=config.wifiSsid, auth=config.wifiAuth)
               #max_tx_pwr=convertTxPower(wifiMaxTxPower))
               #protocol=
     print("WLAN initialized.")
@@ -148,11 +118,13 @@ def udpReceive():
         print("Received UDP mdg : %s" % data)
 """
 
+
 ################################################################
 #######################     EXECUTION    #######################
 ################################################################
+state.init()
 
-print(wifiSsid)
+print(config.wifiSsid)
 
 #initWifi()
 #time.sleep(10)
@@ -168,7 +140,15 @@ initWifi()
 # Init LoRa
 general.initLoRa()
 
+general.startUDPServer("192.168.4.1")
+
+while True:
+    utime.sleep(5)
+    print("Attempt to read UDP...")
+    general.udpServ.readPacket()
 # Start WebServer
 initWeb()
+
+
 
 print("End Main")
