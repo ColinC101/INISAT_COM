@@ -2,6 +2,7 @@
 from network import LoRa
 import socket
 import pycom
+import config
 import time
 
 """
@@ -11,87 +12,65 @@ For this implementation, we are focusing on LoPy to Lopy communication,
 in simple LoRa mode (see https://docs.pycom.io/tutorials/networks/lora/module-module/)
 """
 
+class LoraObject:        
+    def __init__(self):
+        # Status of th LoRa link. (0 = disabled / 1 = enabled)
+        self.__loraStatus__ = False
+        # Getting LoRa object
+        self.lora = LoRa(mode=config.loraMode, region=config.loraRegion)
+   
+    def initLoRa(self):
+        """
+        Initialisation of the LoRa transmission.
+        Parameters (mode, region, ...) can be modified in config.py file
+        """
+        print("Initializing LoRa ...")
+        self.lora.init(mode=config.loraMode, region=config.loraRegion,
+                tx_power=config.loraTxPower, bandwidth=config.loraBandwidth,
+                sf=config.loraSpreadingFactor, preamble=config.loraPreamble,
+                coding_rate=config.loraCodingRate, power_mode=config.loraPowerMode,
+                tx_iq=config.loraTxIQ, rx_iq=config.loraRxIQ,
+                public=config.loraPublicSync)
+        self.__loraStatus__ = True
+        print("LoRa initialized")
 
-# Status of th LoRa link. (0 = disabled / 1 = enabled)
-__loraStatus__ = True
+    ######################################################
+    #################  CONNEXION STATUS  #################
+    ######################################################
 
+    def getLoraStatus(self):
+        """
+        Gets the status of the Lora link
+        @return True  if the link is On
+                False if the link is Off
+        """
+        return self.__loraStatus__
 
-loraMode = LoRa.LORA
-loraRegion = LoRa.EU868  # Europe
+    def enableLora(self):
+        """
+        Enables the LoRa link.
+        Communications will then be sent by the LoRa Antenna
+        """
+        self.__loraStatus__ = True
 
-# Parameters only for LoRa.LORA mode
-#loraFrequency = 0  #TODO, est-ce qu'il y a une valeur par défaut ? Rien trouvé dans le code .ino
-loraTxPower = 17  # 17dBm
-loraBandwidth = LoRa.BW_125KHZ
-loraSpreadingFactor = 7
-loraPreamble = 8
-loraCodingRate = LoRa.CODING_4_5
-loraPowerMode = LoRa.ALWAYS_ON
-loraTxIQ = False
-loraRxIQ = False
-loraPublicSync = True
-
-# Parameters only for LoRa.LORAWAN mode
-loraAdaptativeDataRate = 0
-loraTxRetries = 0
-loraDeviceClass = 0
-
-
-# Getting LoRa object
-lora = LoRa(mode=loraMode, region=loraRegion)
-
-def initLoRa():
-    """
-    Initialisation of the LoRa transmission.
-    Parameters (mode, region, ...) can be modified in config.py file
-    """
-    print("Initializing LoRa ...")
-    lora.init(mode=loraMode, region=loraRegion,
-            tx_power=loraTxPower, bandwidth=loraBandwidth,
-            sf=loraSpreadingFactor, preamble=loraPreamble,
-            coding_rate=loraCodingRate, power_mode=loraPowerMode,
-            tx_iq=loraTxIQ, rx_iq=loraRxIQ,
-            public=loraPublicSync)
-    
-    print("LoRa initialized")
-
-######################################################
-#################  CONNEXION STATUS  #################
-######################################################
-
-def getLoraStatus():
-    """
-    Gets the status of the Lora link
-    @return True  if the link is On
-            False if the link is Off
-    """
-    return __loraStatus__
-
-def enableLora():
-    """
-    Enables the LoRa link.
-    Communications will then be sent by the LoRa Antenna
-    """
-    __loraStatus__ = True
-
-def disableLora():
-    """
-    Disnables the LoRa link.
-    Communications will not be sent by the LoRa Antenna
-    """
-    __loraStatus__ = False
+    def disableLora(self):
+        """
+        Disnables the LoRa link.
+        Communications will not be sent by the LoRa Antenna
+        """
+        self.__loraStatus__ = False
 
 
-def sendReadings():
-    """
-    Sends the collected data via the LoRa link.
-    """
-    # Creating communication Socket
-    s = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
-    s.setblocking(False)
-    # TODO: Ajouter les envois des données
-        # (quand les données seront ajoutées)
-    s.close()
+    def sendReadings(self):
+        """
+        Sends the collected data via the LoRa link.
+        """
+        # Creating communication Socket
+        s = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
+        s.setblocking(False)
+        # TODO: Ajouter les envois des données
+            # (quand les données seront ajoutées)
+        s.close()
 
 
 
