@@ -28,7 +28,6 @@ print("Begin Main")
 localIp = "192.168.4.1"
 tcpPort = 8080
 
-tcpBufferSize = 4096 #Reception buffer for TCP requests
 
 ################################################################
 #######################       WIFI       #######################
@@ -148,95 +147,6 @@ def udpReceive():
         data, addr = sock.recvfrom(1024) #Buffer size
         print("Received UDP mdg : %s" % data)
 """
-
-################################################################
-#######################        WEB       #######################
-################################################################
-
-
-def tcpClientThread(tcpClientSocket, threadNumber):
-    """
-    TCP request handler.
-
-        Parameters:
-            tcpClientSocket (socket): The socket of the web client
-            threadNumber (int): The thread number
-
-        Returns:
-            sentBytes (int): The number of bytes sent in HTTP response
-    """
-
-    #Isolate request arguments as strings
-    request = str(tcpClientSocket.recv(tcpBufferSize))
-    splitRequest = request.split(" ")
-
-    #Default response header
-    http_header = b"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection:close \r\n\r\n"
-
-    #List of possible response file types
-    mimeTypeList = [(".html", b"text/html"),
-                    (".css", b"text/css"),
-                    (".jpg", b"image/jpeg"),
-                    (".js", b"application/javascript"),
-                    (".txt", b"text/plain"),
-                    (".woff", b"font/woff"),
-                    (".woff2", b"font/woff2")]
-
-    if len(splitRequest) <= 1: #If request is empty
-        http_body = b"Invalid request, ignoring .."
-    else:
-        #Get the requested ressource
-        requestContent = "index.html" if splitRequest[1]=="/" else splitRequest[1][1:]
-
-        #Check if the request is a command or an asynchronous event
-        isCommand = general.commandHandler(requestContent)
-        isEvent = general.eventHandler(requestContent, tcpClientSocket)
-
-        if isCommand[0] == 1: #If command
-            http_body = isCommand[1]  #Return the answer of the command
-        elif isEvent[0] == 1: #If event
-            return 0 #Return nothing (the event handler is in charge of responding)
-        else: #If file
-
-            #Get the file type
-            mimeType = b"application/octet-string"
-            for i in mimeTypeList:
-                if i[0] in requestContent:
-                    mimeType = i[1]
-            #Read the file content in binary mode
-            try:
-                with open("web/" + requestContent, 'rb') as infile:
-                    http_header = b"HTTP/1.1 200 OK\r\nContent-Type: " + mimeType + b"\r\nContent-Lenght: " + str(uos.stat("web/" + requestContent)[6]) + b"\r\nConnection:close \r\n\r\n"
-                    http_body = infile.read()
-                    infile.close()
-            except OSError:
-                http_body = b"Requested file : not found .."
-
-    #Send the HTTP response and close the connection
-    sentBytes = tcpClientSocket.send(http_header + http_body)
-    tcpClientSocket.close()
-
-    #Clear string for memory saving (experimental)
-    http_header = ""
-    http_body = ""
-
-    return sentBytes
-
-def initWeb():
-    """
-    Initiate TCP connection for Web server communication.
-    """
-    tcpServersocket = usocket.socket(usocket.AF_INET, usocket.SOCK_STREAM) #Create the socket
-    tcpServersocket.setsockopt(usocket.SOL_SOCKET, usocket.SO_REUSEADDR, 1) #Initialize the socket
-    tcpServersocket.bind((localIp, tcpPort)) #Bind the socket
-    tcpServersocket.listen(maxTcpConnection) #Start listening for in coming connections
-
-    while True:
-
-        (tcpClientsocket, tcpAddress) = tcpServersocket.accept()
-        tcpClientThread(tcpClientsocket, utime.ticks_ms()) #Start a new thread to handler the new connection
-
-    tcpServersocket.close() #Close the server-side socket
 
 ################################################################
 #######################     EXECUTION    #######################
