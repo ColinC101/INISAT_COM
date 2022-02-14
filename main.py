@@ -140,6 +140,7 @@ initWifi()
 # Init LoRa
 general.initLoRa()
 
+general.startTCPServer()
 general.startUDPServer("192.168.4.1")
 x=0
 while True:

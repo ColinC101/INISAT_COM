@@ -9,6 +9,7 @@ from ioctl import Ioctl
 import LoRa
 import eventsource
 import state
+import tcpServer
 
 consoleEvent = EventSource("consoleEvent")
 graphEvent = EventSource("graphEvent")
@@ -182,8 +183,9 @@ def startTCPServer():
     Start the TCP Server
     """
     global tcpServ
-    tcpServ = TcpServer(cbList, eventList)
+    tcpServ = tcpServer.TcpServer(cbList, eventList)
     tcpServ.bind(config.localIP, config.tcpPort)
+    tcpServ.listen()
 
 def setupGPIO():
     """
