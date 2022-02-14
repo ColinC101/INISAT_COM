@@ -15,31 +15,33 @@ class UdpServer:
         Init the UDP server with the given port
         """
         self.udpSocket = None
-        self.activated = False
         self.lastRemoteAddr = ""
         self.lastRemotePort = 0
         self.cbList = cbList
 
-    def listen(self,localIP,localPort):
+    def bind(self,localIP,localPort):
         """
-        Start a new thread for processing UDP requests
+        Bind the UdpServer to the given address/port so that it can
+        receive packets
         """
-        if not self.activated:
-            self.activated = True
-            self.udpSocket = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP)
-            self.udpSocket.bind((localIP,localPort))
-            _thread.start_new_thread(self.__main_loop__,())
-    
-    def __main_loop__(self):
-        """
-        The main loop of the UDP Server, used to process requests
-        """
-        
-        # Put the socket in blocking mode
-        self.udpSocket.settimeout(None)
+        self.udpSocket = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP)
+        self.udpSocket.bind((localIP,localPort))
 
-        while self.activated:
-            (bytesReceived,(self.lastRemoteAddr,self.lastRemotePort)) = self.udpSocket.recvfrom(UdpServer.RECEIVE_BUFFER_SZ)
+        # Put the socket in non-blocking mode
+        self.udpSocket.setblocking(False)
+
+            
+    
+    def readPacket(self):
+        """
+        Read a UDP packet and execute the associated command
+        """
+        lstRemote = ""
+        lstRemotePort = 0
+        (bytesReceived,(lstRemote,lstRemotePort)) = self.udpSocket.recvfrom(UdpServer.RECEIVE_BUFFER_SZ)
+        if bytesReceived>0:
+            self.lastRemoteAddr = lstRemote
+            self.lastRemotePort = lstRemotePort
             udpCommand = bytesReceived.decode('utf-8')
             print("Trame UDP recue de : "+self.lastRemoteAddr)
             print("Taille : "+len(udpCommand))
