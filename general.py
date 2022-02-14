@@ -1,4 +1,5 @@
 from udpserver import UdpServer
+from eventsource import EventSource
 import utime
 import config
 from machine import PWM
@@ -6,6 +7,14 @@ from machine import UART
 from machine import Pin
 from ioctl import Ioctl
 import LoRa
+import eventsource
+
+
+# Console configuration
+consConfig = "00000000000000"
+
+# Auto test status
+autoTesting = 0
 
 # Console updating interval (ms)
 consoleInterval = 5000
@@ -25,18 +34,19 @@ testMag = 0
 # Ioctl object for IO interfaces
 ioctlObj = Ioctl()
 
-# UDP Server object
-udpServ = None
-udpPort = 9991
-
 consoleEvent = EventSource("consoleEvent")
 graphEvent = EventSource("graphEvent")
 interfaceEvent = EventSource("interfaceEvent")
 autotestEvent = EventSource("autotestEvent")
 demagEvent = EventSource("demagEvent")
 
+# UDP Server object
+udpServ = None
+udpPort = 9991
 
-def initLora():
+
+
+def initLoRa():
     """
     Init LoRa
     """
@@ -48,10 +58,20 @@ def getState():
     """
     return "S" + str(camStatus) + "#" + str(int(LoRa.getLoraStatus()))+"#Capteurs OK#"+str(consoleInterval)+"#"+str(modeGnss)+"@"
 
+def uartFlush():
+    """
+    Flush the UART-OBC serial link
+    """
+    ioctlObj.getObject(Ioctl.KEY_UART_OBC).wait_tx_done(1000)
+
+#### BEGIN - UDP COMMANDS ####
+
+## BEGIN - UDP INTERFACE COMMANDS ##
 def cbNone():
     """
     Disable UDP communication
     """
+    global udpCom
     udpCom = False
     return ""
 
@@ -59,6 +79,7 @@ def cbStopUDP():
     """
     Disable UDP communication
     """
+    global udpCom
     udpCom = False
     return "Fin de la communication avec INISAT 2U "
 
@@ -66,6 +87,7 @@ def cbBeginUDP():
     """
     Enable UDP communication
     """
+    global udpCom
     udpCom = True
     return "Client enregistre, debut de la communication avec INISAT 2U"
 
@@ -74,7 +96,9 @@ def cbState():
     Send the current state of the server, over UDP
     """
     return getState()
+## END - UDP INTERFACE COMMAND ##
 
+## BEGIN - ARTH INERFACE COMMAND ##
 def cbCameraOn():
     """
     Turn on the camera
@@ -112,11 +136,23 @@ def cbLoRaOff():
     return getState()
 
 def cbTest():
-    # TODO
+    """
+    Start an auto test
+    """
+    global autoTesting
+    uartFlush()
+    ioctlObj.getObject(Ioctl.KEY_UART_OBC).write('A')
+    autoTesting = 1
     return getState()
 
 def cbAutoTest():
-    # TODO
+    """
+    Start also an auto test
+    """
+    global autoTesting
+    uartFlush()
+    ioctlObj.getObject(Ioctl.KEY_UART_OBC).write('A')
+    autoTesting = 1
     return "Config autotest lancee .."
 
 def cbGNSSon():
@@ -125,6 +161,7 @@ def cbGNSSon():
     """
     global modeGnss
     modeGnss = 1
+    uartFlush()
     # TODO
     return getState()
 
@@ -145,12 +182,19 @@ def cbGNSSsave():
     # TODO
     return getState()
 
+## END - ARTH INERFACE COMMAND ##
+
+
+#### END - UDP COMMANDS #####
+
 def startUDPServer(localIP):
     """
     Start the UDP Server
     """
     global udpServ
-    cbList = {"none":cbNone}
+    cbList = {"none":cbNone,"stopudp":cbStopUDP,"beginudp":cbBeginUDP,"state":cbState,"cameraon":cbCameraOn,
+    "cameraoff":cbCameraOff,"loraon":cbLoRaOn,"loraoff":cbLoRaOff,"test":cbTest,"autotest":cbAutoTest,
+    "gnsson":cbGNSSon,"gnssoff":cbGNSSoff,"gnsssave":cbGNSSsave}
     udpServ = UdpServer(cbList)
     udpServ.listen(localIP,udpPort)
 
@@ -195,7 +239,7 @@ def setupGPIO():
 
     # Default state
     ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1.0)
-    ioctlObj.getObject(Ioctl.KEY_DIR_Y).duty_cycle(1.0)
+    ioctlObj.getObject(Ioctl.KEY_PWM_Y).duty_cycle(1.0)
     ioctlObj.getObject(Ioctl.KEY_LORA_LED).value(0)
     ioctlObj.getObject(Ioctl.KEY_WIFI_LED).value(0)
     ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value(0)
@@ -207,7 +251,7 @@ def eventHandler(event, socket):
                  ("events3", interfaceEvent), ("events4", autotestEvent),
                  ("events5", demagEvent)]
     for i in eventList:
-        if i[0] = event:
+        if i[0] == event:
             i[1].bind(socket)
             return (1, "Event " + event + " bounded")
     return (-1, "Event Not Found")
@@ -235,10 +279,10 @@ def commandHandler(command):
 def toggleLora(paramStruct):
     loraActive = LoRa.getLoraStatus()
     if (paramStruct == () or paramStruct[0]) and not loraActive:
-        LoRa.enableLora():
+        LoRa.enableLora()
         return "Liaison LoRa activée"
     elif (paramStruct == () or not paramStruct[0]) and loraActive:
-        LoRa.disableLora():
+        LoRa.disableLora()
         return "Liaison LoRa désactivée"
     elif paramStruct[0] and loraActive:
         return "Liaison LoRa déjà active !"
@@ -325,4 +369,5 @@ def stopTestMag(paramStruct):
     """
     global testMag
     testMag = 0
+    demagEvent.send("fct_fin", "B", utime.ticks_ms())
     return "Arrêt du test ..."

@@ -1,6 +1,7 @@
 #COMMON
 import pycom
 import time
+import utime
 import uos
 #WIFI
 from network import WLAN
@@ -12,6 +13,11 @@ import _thread
 #import http.server
 #import socketserver
 import general
+
+import micropython
+
+#import utime
+#tics_ms()
 
 print("Begin Main")
 
@@ -42,6 +48,7 @@ wifiAntenna = WLAN.INT_ANT #Select between integrated and external antenna (WLAN
 wifiBandwidth = WLAN.HT40 #Bandwith to use for Wifi, 20MHz or 40MHz
 wifiMaxTxPower = 19.5 #WiFi power in dBm
 #wifiProtocol =
+maxTcpConnection = 1
 
 ########################### HANDLING ###########################
 
@@ -149,10 +156,14 @@ def tcpClientThread(tcpClientsocket, n):
                     infile.close()
             except OSError:
                 http_body = b"Requested file : not found .."
-
+    #print("av:" + str(micropython.stack_use()))
+    print("ava:" + str(micropython.mem_info()))
     tcpClientsocket.send(http_header + http_body)
+    http_header = ""
+    http_body = ""
+    #print("ap:" + str(micropython.stack_use()))
+    print("apa:" + str(micropython.mem_info()))
     tcpClientsocket.close()
-    time.sleep_ms(500)
 
 def initWeb():
     """
@@ -161,11 +172,11 @@ def initWeb():
     tcpServersocket = usocket.socket(usocket.AF_INET, usocket.SOCK_STREAM)
     tcpServersocket.setsockopt(usocket.SOL_SOCKET, usocket.SO_REUSEADDR, 1)
     tcpServersocket.bind((localIp, tcpPort))
-    tcpServersocket.listen(1)
+    tcpServersocket.listen(maxTcpConnection)
 
     while True:
         (tcpClientsocket, tcpAddress) = tcpServersocket.accept()
-        _thread.start_new_thread(tcpClientThread, (tcpClientsocket, 1))
+        _thread.start_new_thread(tcpClientThread, (tcpClientsocket, utime.ticks_ms()))
 
     tcpServersocket.close()
 
@@ -175,11 +186,20 @@ def initWeb():
 
 print(wifiSsid)
 
+#initWifi()
+#time.sleep(10)
+#getConnectedDevices()
+#udpReceive();
+#print("1:" + str(micropython.stack_use()))
+print("1a:" + str(micropython.mem_info()))
 # Init IOs
 general.setupGPIO()
-
+#print("2:" + str(micropython.stack_use()))
+print("2a:" + str(micropython.mem_info()))
 # Init WiFi
 initWifi()
+#print("3:" + str(micropython.stack_use()))
+print("3a:" + str(micropython.mem_info()))
 
 # Init LoRa
 general.initLoRa()
