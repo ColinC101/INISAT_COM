@@ -1,5 +1,6 @@
 #WIFI
 from network import WLAN
+from network import LoRa
 
 ################################################################
 #######################  HARDWARE CONFIG   #####################
@@ -66,7 +67,31 @@ wifiChannel = 1
 wifiAntenna = WLAN.INT_ANT 
 
 # Bandwith to use for WiFi, 20MHz or 40MHz
-wifiBandwidth = WLAN.HT40 
+# wifiBandwidth = WLAN.HT40 
 
 # WiFi power in dBm
 wifiMaxTxPower = 19.5 
+
+################################################################
+#######################  LoRa CONFIG     #######################
+################################################################
+
+loraMode = LoRa.LORA
+loraRegion = LoRa.EU868  # Europe
+
+# Parameters only for LoRa.LORA mode
+#loraFrequency = 0  #TODO, est-ce qu'il y a une valeur par défaut ? Rien trouvé dans le code .ino
+loraTxPower = 17  # 17dBm
+loraBandwidth = LoRa.BW_125KHZ
+loraSpreadingFactor = 7
+loraPreamble = 8
+loraCodingRate = LoRa.CODING_4_5
+loraPowerMode = LoRa.ALWAYS_ON
+loraTxIQ = False
+loraRxIQ = False
+loraPublicSync = True
+
+# Parameters only for LoRa.LORAWAN mode
+loraAdaptativeDataRate = 0
+loraTxRetries = 0
+loraDeviceClass = 0
