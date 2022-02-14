@@ -9,28 +9,6 @@ from ioctl import Ioctl
 import LoRa
 import eventsource
 
-
-# Console configuration
-consConfig = "00000000000000"
-
-# Auto test status
-autoTesting = 0
-
-# Console updating interval (ms)
-consoleInterval = 5000
-
-# Enable / Disable GNSS
-modeGnss = 0
-
-# Enable / Disable camera
-camStatus = 0
-
-# Enable / Disable UDP com
-udpCom = False
-
-# Active magneto-coupler test
-testMag = 0
-
 # Ioctl object for IO interfaces
 ioctlObj = Ioctl()
 
@@ -43,8 +21,6 @@ demagEvent = EventSource("demagEvent")
 # UDP Server object
 udpServ = None
 udpPort = 9991
-
-
 
 def initLoRa():
     """
