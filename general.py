@@ -151,18 +151,21 @@ def cbGNSSsave():
 
 
 #### END - UDP COMMANDS #####
+cbList = {"none":cbNone,"stopudp":cbStopUDP,"beginudp":cbBeginUDP,"state":cbState,"cameraon":cbCameraOn,
+"cameraoff":cbCameraOff,"loraon":cbLoRaOn,"loraoff":cbLoRaOff,"test":cbTest,"autotest":cbAutoTest,
+"gnsson":cbGNSSon,"gnssoff":cbGNSSoff,"gnsssave":cbGNSSsave}
+
+eventList = {"events": consoleEvent, "events2": graphEvent,
+             "events3": interfaceEvent, "events4": autotestEvent,
+             "events5": demagEvent}
 
 def startUDPServer(localIP):
     """
     Start the UDP Server
     """
     global udpServ
-    cbList = {"none":cbNone,"stopudp":cbStopUDP,"beginudp":cbBeginUDP,"state":cbState,"cameraon":cbCameraOn,
-    "cameraoff":cbCameraOff,"loraon":cbLoRaOn,"loraoff":cbLoRaOff,"test":cbTest,"autotest":cbAutoTest,
-    "gnsson":cbGNSSon,"gnssoff":cbGNSSoff,"gnsssave":cbGNSSsave}
     udpServ = UdpServer(cbList)
     udpServ.bind(localIP,udpPort)
-
 
 def initSystemHardware():
     """ 
@@ -175,6 +178,14 @@ def initSystemHardware():
     # LoRa
     state.loraObj = LoRa.LoraObject()
  
+def startTCPServer():
+    """
+    Start the TCP Server
+    """
+    global tcpServ
+    tcpServ = TcpServer(cbList, eventList)
+    tcpServ.bind(config.localIP, config.tcpPort)
+
 def setupGPIO():
     """
     Init function used to setup the GPIOs of the board. In particular, it configures output pins
@@ -222,7 +233,7 @@ def setupGPIO():
 
     utime.sleep_ms(100)
 
-def eventHandler(event, socket):
+"""def eventHandler(event, socket):
     eventList = [("events", consoleEvent), ("events2", graphEvent),
                  ("events3", interfaceEvent), ("events4", autotestEvent),
                  ("events5", demagEvent)]
@@ -250,7 +261,7 @@ def commandHandler(command):
     for i in commandList:
         if i[0] == command:
             return (1, i[1](i[2]))
-    return (-1, "Command Not Found")
+    return (-1, "Command Not Found")"""
 
 def toggleLora(paramStruct):
     loraActive = LoRa.getLoraStatus()

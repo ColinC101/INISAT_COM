@@ -1,11 +1,13 @@
 """
-All the aliases used in the UART laison are listed here.
+All the aliases used are listed here.
 Please use theses aliases to improve readability and reliability.
 
 UART COMMANDS aliases are used to determine what data are exchanged.
 
 JSON ACCESS aliases are used to grant easier access to the data, in
 a need for retro-compatibility with web interface. 
+
+CONS CONFIG aliases are used to access easily the data in consConfig table.
 """
 
 
@@ -37,9 +39,27 @@ UART_COMMAND_NMEA_NO_DATA = 'Q'
 UART_COMMAND_END = 'Z'
 
 
+
 #######################################
 ############  JSON ACCESS  ############
 #######################################
+
+# Autotests
+JSON_AUTOTEST_WIFI_MODE = "var1"
+JSON_AUTOTEST_WIFI_POWER = "var2"
+JSON_AUTOTEST_WIFI_IP = "var3"
+JSON_AUTOTEST_PING_CAMERA = "var4"
+JSON_AUTOTEST_LORA_POWER = "var5"
+JSON_AUTOTEST_LORA_SPREADINGFACTOR = "var6"
+JSON_AUTOTEST_LORA_BANDWIDTH = "var7"
+JSON_AUTOTEST_LORA_FREQUENCY = "var8"
+JSON_AUTOTEST_LORA_CODINGRATE = "var9"
+JSON_AUTOTEST_LORA_PREAMBLE = "var10"
+JSON_AUTOTEST_VOID1 = "var11"
+JSON_AUTOTEST_VOID2 = "var12"
+JSON_AUTOTEST_VOID3 = "var13"
+JSON_AUTOTEST_RAW = "var14"
+
 
 # EPS
 JSON_EPS_VBAT = "var1"
@@ -121,3 +141,24 @@ JSON_NMEA_9 = "var50"
 
 # Config
 JSON_CONS_CONFIG = "var51"
+
+
+
+#######################################
+############  CONS CONFIG  ############
+#######################################
+
+CONSCONFIG_EPS = 0
+CONSCONFIG_TEMPERATURE = 1
+CONSCONFIG_ALTITUDE = 2
+CONSCONFIG_PRESSION = 3
+CONSCONFIG_EULER = 4
+CONSCONFIG_QUATERNION = 5
+CONSCONFIG_ANGULAR_SPEED = 6
+CONSCONFIG_ACCELERATION = 7
+CONSCONFIG_MAGNETIC_FIELD = 8
+CONSCONFIG_LINEAR_ACCELERATION = 9
+CONSCONFIG_GRAVITY = 10
+CONSCONFIG_LUMINANCE = 11
+CONSCONFIG_GNSS = 12
+CONSCONFIG_NMEA = 13
