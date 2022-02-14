@@ -5,6 +5,8 @@ from machine import UART
 from machine import Pin
 from ioctl import Ioctl
 import LoRa
+import eventsource
+
 
 # Active magneto-coupler test
 testMag = 0
@@ -12,11 +14,11 @@ testMag = 0
 # Ioctl object for IO interfaces
 ioctlObj = Ioctl()
 
-consoleEvent = EventSource("consoleEvent")
-graphEvent = EventSource("graphEvent")
-interfaceEvent = EventSource("interfaceEvent")
-autotestEvent = EventSource("autotestEvent")
-demagEvent = EventSource("demagEvent")
+consoleEvent = eventsource.EventSource("consoleEvent")
+graphEvent = eventsource.EventSource("graphEvent")
+interfaceEvent = eventsource.EventSource("interfaceEvent")
+autotestEvent = eventsource.EventSource("autotestEvent")
+demagEvent = eventsource.EventSource("demagEvent")
 
 def setupGPIO():
     """
@@ -64,7 +66,7 @@ def eventHandler(event, socket):
                  ("events3", interfaceEvent), ("events4", autotestEvent),
                  ("events5", demagEvent)]
     for i in eventList:
-        if i[0] = event:
+        if i[0] == event:
             i[1].bind(socket)
             return (1, "Event " + event + " bounded")
     return (-1, "Event Not Found")
@@ -92,10 +94,10 @@ def commandHandler(command):
 def toggleLora(paramStruct):
     loraActive = LoRa.getLoraStatus()
     if (paramStruct == () or paramStruct[0]) and not loraActive:
-        LoRa.enableLora():
+        LoRa.enableLora()
         return "Liaison LoRa activée"
     elif (paramStruct == () or not paramStruct[0]) and loraActive:
-        LoRa.disableLora():
+        LoRa.disableLora()
         return "Liaison LoRa désactivée"
     elif paramStruct[0] and loraActive:
         return "Liaison LoRa déjà active !"
@@ -182,4 +184,5 @@ def stopTestMag(paramStruct):
     """
     global testMag
     testMag = 0
+    demagEvent.send("fct_fin", "B", utime.ticks_ms())
     return "Arrêt du test ..."

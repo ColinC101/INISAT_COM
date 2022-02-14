@@ -20,7 +20,7 @@ class EventSource:
         self.socketClientList.append(socketClient)
         responseHeader = b"HTTP/1.1 200 OK\r\nCache-Control: no-cache\r\nContent-Type: text/event-stream\r\n\r\n"
         socketClient.send(responseHeader)
-    
+
     def send(self,func_name,data,id):
         """
         Send an event to all the socket clients that are bound to this event source
@@ -31,8 +31,8 @@ class EventSource:
         messageBody = "id: "+str(id)+"\n"
         messageBody += "event: "+func_name+"\n"
         messageBody += "data: "+data+"\n\n"
-        
-        # List to store the index of sockets that hasve been closed and has 
+
+        # List to store the index of sockets that hasve been closed and has
         # to be cleared
         removeSocketIdx = []
 
@@ -53,6 +53,3 @@ class EventSource:
         # Clear closed sockets
         for socketIdx in removeSocketIdx:
             del self.socketClientList[socketIdx]
-
-
-    
