@@ -4,10 +4,11 @@ def init():
     """
     Init state variables
     """
-    global consoleConfig,autoTesting,consoleInterval,modeGnss,camStatus,udpCom,testMag,ioctlObj,loraObj,gnssStartTime,chartsConfig,deMag,readingsJSON, affCons, affGraph, affInterface, affLora, affCons_ex, affGraph_ex, affInterface_ex, affLora_ex
+    global consoleConfig,consFlag,autoTesting,consoleInterval,modeGnss,camStatus,udpCom,testMag,ioctlObj,loraObj,gnssStartTime,chartsConfig,deMag,readingsJSON, affCons, affGraph, affInterface, affLora, affCons_ex, affGraph_ex, affInterface_ex, affLora_ex
 
     # Console configuration
     consoleConfig = aliases.CONSOLE_CONFIG_DISABLED
+    consFlag = False
 
     # Auto test status
     autoTesting = 0
@@ -47,12 +48,12 @@ def init():
     readingsJSON = {}
 
     # TODO: Pas sûr de ce que sont ces variables, glhf
-    affCons = 0
-    affGraph = 0
-    affInterface = 0
-    affLora = 0
-    affCons_ex = 0
-    affGraph_ex = 0
-    affInterface_ex = 0
-    affLora_ex = 0
+    affCons = False
+    affGraph = False
+    affInterface = False
+    affLora = False
+    affCons_ex = False
+    affGraph_ex = False
+    affInterface_ex = False
+    affLora_ex = False
 
