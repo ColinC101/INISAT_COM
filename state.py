@@ -4,10 +4,11 @@ def init():
     """
     Init state variables
     """
-    global consoleConfig,autoTesting,consoleInterval,modeGnss,camStatus,udpCom,testMag,ioctlObj,loraObj,gnssStartTime,chartsConfig,deMag,readingsJSON
+    global consoleConfig,consFlag,autoTesting,consoleInterval,modeGnss,camStatus,udpCom,testMag,ioctlObj,loraObj,gnssStartTime,chartsConfig,deMag,readingsJSON, affCons, affGraph, affInterface, affLora, affModeGnss, affCons_ex, affGraph_ex, affInterface_ex, affLora_ex
 
     # Console configuration
     consoleConfig = aliases.CONSOLE_CONFIG_DISABLED
+    consFlag = False
 
     # Auto test status
     autoTesting = 0
@@ -45,3 +46,15 @@ def init():
     # All the data retreived from OBC
     # Keys are listed in aliases.py under JSON ACCESS
     readingsJSON = {}
+
+    # TODO: Pas sûr de ce que sont ces variables, glhf
+    affCons = False
+    affGraph = False
+    affInterface = False
+    affLora = False
+    affModeGnss = False
+    affCons_ex = False
+    affGraph_ex = False
+    affInterface_ex = False
+    affLora_ex = False
+
