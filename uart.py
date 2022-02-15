@@ -219,16 +219,32 @@ def serialRead():
             readingsUDP[CONSCONFIG_NMEA] = UART_COMMAND_NMEA + tmpData + '@'
             
         elif (inChar == UART_COMMAND_END):
+            # TODO: Modify the events
+
             # Conversion towards JSON string
             readingsResults = json.dumps(state.readingsJSON)
 
-            # Sending the data to the web interface
-            general.interfaceEvent.send(readingsResults, "CAP_readings", milliseconds())
-            print("Event 'CAP_readings' sent")
-            # Sending the data through UDP, only if needed
-            if (state.udpCom):
-                for v in readingsUDP.values():
-                    udpserver.sendToLastRemote(v) 
+            # Sending the data to twhere it is needed
+
+            if state.affCons_ex:
+                general.consoleEvent.send(readingsResults, "CAP_readings", milliseconds())
+                print("Event 'CAP_readings' sent")
+                # Sending the data through UDP, only if needed
+                if (state.udpCom):
+                    for v in readingsUDP.values():
+                        udpserver.sendToLastRemote(v)
+                state.affCons_ex = 0
+
+            if state.affGraph_ex:
+                general.graphEvent(readingsResults, "CAP_readings2", milliseconds())
+                state.affGraph_ex = 0
+
+            if state.affInterface_ex:
+                general.interfaceEvent(readingsResults, "CAP_readings3", milliseconds())
+                state.affInterface_ex = 0
+
+            # TODO: Add GNSS & LoRa (maybe)
+
     
     else:
         print("Nothing to read")
@@ -239,6 +255,28 @@ def serialWrite():
     Sends a command corresponding to the state
     """
     # Getting only once all the elements necessary to know what to send
+    userConnected = (len(main.getConnectedDevices) != 0)
+    loraOn = state.loraObj.getLoraStatus()
+    state.udpCom
+    state.autoTesting
+    
+    if ((userConnected or loraOn or state.udpCom) and not(state.autoTesting) and state.affCons):
+        pass
 
-    # TODO: Comprendre les éléments déclencheurs et implémenter
-    pass
+    # Tell the UART the command sequence is over
+    if (state.consFlag):
+        uart.write('Z')
+        state.consFlag = False
+        
+
+
+    # Drop all the display flags, since we just served them
+    state.affCons = False
+    state.affGraph = False
+    state.affInterface = False
+    state.affLora = False
+    state.modeGnss = False
+    
+    # If no chart is activated, we drop the flag
+    if (state.chartsConfig == CHARTS_CONFIG_DISABLED):
+        state.affGraph_ex = False
