@@ -219,8 +219,6 @@ def serialRead():
             readingsUDP[CONSCONFIG_NMEA] = UART_COMMAND_NMEA + tmpData + '@'
             
         elif (inChar == UART_COMMAND_END):
-            # TODO: Modify the events
-
             # Conversion towards JSON string
             readingsResults = json.dumps(state.readingsJSON)
 
@@ -260,22 +258,61 @@ def serialWrite():
     state.udpCom
     state.autoTesting
     
-    if ((userConnected or loraOn or state.udpCom) and not(state.autoTesting) and state.affCons):
-        pass
+    if ((userConnected or loraOn or state.udpCom) and not(state.autoTesting)):
+        if (state.affCons and state.consoleConfig[CONSCONFIG_EPS]=='1') or (state.affGraph and (CHART_EPS in state.chartsConfig)) or (state.affInterface and userConnected) or (state.affLora and loraOn):
+            state.consFlag = 1
+            uart.write(UART_COMMAND_EPS)
+        if (state.affCons and state.consoleConfig[CONSCONFIG_TEMPERATURE]=='1') or (state.affGraph and (CHART_TEMPERATURE in state.chartsConfig)) or (state.affInterface and userConnected) or (state.affLora and loraOn):
+            state.consFlag = 1
+            uart.write(UART_COMMAND_TEMPERATURE)
+        if (state.affCons and state.consoleConfig[CONSCONFIG_ALTITUDE]=='1') or (state.affGraph and (CHART_ALTITUDE in state.chartsConfig)) or (state.affInterface and userConnected) or (state.affLora and loraOn):
+            state.consFlag = 1
+            uart.write(UART_COMMAND_ALTITUDE)
+        if (state.affCons and state.consoleConfig[CONSCONFIG_PRESSION]=='1') or (state.affGraph and (CHART_PRESSION in state.chartsConfig)) or (state.affInterface and userConnected) or (state.affLora and loraOn):
+            state.consFlag = 1
+            uart.write(UART_COMMAND_PRESSION)
+        if (state.affCons and state.consoleConfig[CONSCONFIG_EULER]=='1') or (state.affGraph and (CHART_EULER in state.chartsConfig)) or (state.affInterface and userConnected) or (state.affLora and loraOn):
+            state.consFlag = 1
+            uart.write(UART_COMMAND_EULER)
+        if (state.affCons and state.consoleConfig[CONSCONFIG_QUATERNION]=='1') or (state.affGraph and (CHART_QUATERNION in state.chartsConfig)) or (state.affLora and loraOn):
+            state.consFlag = 1
+            uart.write(UART_COMMAND_QUATERNION)
+        if (state.affCons and state.consoleConfig[CONSCONFIG_ANGULAR_SPEED]=='1') or (state.affGraph and (CHART_ANGULAR_SPEED in state.chartsConfig)) or (state.affInterface and userConnected) or (state.affLora and loraOn):
+            state.consFlag = 1
+            uart.write(UART_COMMAND_ANGULAR_SPEED)
+        if (state.affCons and state.consoleConfig[CONSCONFIG_ACCELERATION]=='1') or (state.affGraph and (CHART_ACCELERATION in state.chartsConfig)) or (state.affInterface and userConnected) or (state.affLora and loraOn):
+            state.consFlag = 1
+            uart.write(UART_COMMAND_ACCELERATION)
+        if (state.affCons and state.consoleConfig[CONSCONFIG_MAGNETIC_FIELD]=='1') or (state.affGraph and (CHART_MAGNETIC_FIELD in state.chartsConfig)) or (state.affInterface and userConnected) or (state.affLora and loraOn):
+            state.consFlag = 1
+            uart.write(UART_COMMAND_MAGNETIC_FIELD)
+        if (state.affCons and state.consoleConfig[CONSCONFIG_LINEAR_ACCELERATION]=='1') or (state.affGraph and (CHART_LINEAR_ACCELERATION in state.chartsConfig)):
+            state.consFlag = 1
+            uart.write(UART_COMMAND_LINEAR_ACCELERATION)
+        if (state.affCons and state.consoleConfig[CONSCONFIG_GRAVITY]=='1') or (state.affGraph and (CHART_GRAVITY in state.chartsConfig)) or (state.affInterface and userConnected) or (state.affLora and loraOn):
+            state.consFlag = 1
+            uart.write(UART_COMMAND_GRAVITY_VECTOR)
+        if (state.affCons and state.consoleConfig[CONSCONFIG_LUMINANCE]=='1') or (state.affGraph and (CHART_LUMINANCE in state.chartsConfig)) or (state.affLora and loraOn):
+            state.consFlag = 1
+            uart.write(UART_COMMAND_LUMINANCE)
+        if (state.affCons and state.consoleConfig[CONSCONFIG_GNSS]=='1') or (state.affLora and loraOn) or (state.affModeGnss):
+            state.consFlag = 1
+            uart.write(UART_COMMAND_GNSS)
+        if (state.affCons and state.consoleConfig[CONSCONFIG_NMEA]=='1'):
+            state.consFlag = 1
+            uart.write(UART_COMMAND_NMEA)
 
-    # Tell the UART the command sequence is over
+    # Tell the UART the command sequence is over, only if something has been sent
     if (state.consFlag):
         uart.write('Z')
         state.consFlag = False
-        
-
 
     # Drop all the display flags, since we just served them
     state.affCons = False
     state.affGraph = False
     state.affInterface = False
     state.affLora = False
-    state.modeGnss = False
+    state.affModeGnss = False
     
     # If no chart is activated, we drop the flag
     if (state.chartsConfig == CHARTS_CONFIG_DISABLED):
