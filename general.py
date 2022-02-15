@@ -538,7 +538,16 @@ def gnssTransmitUDP():
 
 cbList = {"none":cbNone,"stopudp":cbStopUDP,"beginudp":cbBeginUDP,"state":cbState,"cameraon":cbCameraOn,
 "cameraoff":cbCameraOff,"loraon":cbLoRaOn,"loraoff":cbLoRaOff,"test":cbTest,"autotest":cbAutoTest,
-"gnsson":cbGNSSon,"gnssoff":cbGNSSoff,"gnsssave":cbGNSSsave}
+"gnsson":cbGNSSon,"gnssoff":cbGNSSoff,"gnsssave":cbGNSSsave,"epson":cbEPSon,"epsoff":cbEPSoff,
+"mplon":cbMPLon,"mploff":cbMPLoff,"tempon":cbTempOn,"tempoff":cbTempOff,"alton":cbAltOn,
+"altoff":cbAltOff,"preson":cbPresOn,"presoff":cbPresOff,"bnoon":cbBNOon,"bnooff":cbBNOoff,
+"euleron":cbEulerOn,"euleroff":cbEulerOff,"quaton":cbQuatOn,"quatoff":cbQuatOff,"vangon":cbVangOn,
+"vangoff":cbVangOff,"accon":cbAccOn,"accoff":cbAccOff,"magon":cbMagOn,"magoff":cbMagOff,
+"acclnon":cbAccLinOn,"acclnoff":cbAccLinOff,"gravon":cbGravOn,"gravoff":cbGravOff,"lumion":cbLumiOn,
+"lumioff":cbLumiOff,"locon":cbLocOn,"locoff":cbLocOff,"nmeaon":cbNMEAon,"nmeaoff":cbNMEAoff,
+"allon":cbAllOn,"alloff":cbAllOff,"lorastate":cbLoraState,"camstate":cbCameraState,"dmagon":cbDemagOn,
+"magt1":cbMagt1,"magt2":cbMagt2,"magt3":cbMagt3,"magt4":cbMagt4,"stpmgt":cbStopMgt,"help":cbHelp,
+"camon":cbCamOn,"camoff":cbCamOff}
 
 eventList = {"events": consoleEvent, "events2": graphEvent,
              "events3": interfaceEvent, "events4": autotestEvent,
