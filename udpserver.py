@@ -2,22 +2,31 @@ from socket import AF_INET, IPPROTO_UDP, SOCK_DGRAM, socket
 import _thread
 
 class UdpServer:
+    """
+    This class implements the UDP server used for the INISAT
+    """
+
     # The size of receiving buffer
     RECEIVE_BUFFER_SZ = 32
 
-    """
-    This class implements the UDP server used for the INISAT
-    @arg cbList : dictionary where key is the UDP command name, and value is the 
-    associated callback function  
-    """
-    def __init__(self,cbList):
+    def __init__(self,cbList,cbArgList,cbSingleChar):
         """
-        Init the UDP server with the given port
+        Init the UdpServer
+        @arg cbList : dictionary where key is the UDP command name, and value is the 
+        associated callback function  
+        @arg cbArgList : dictionnary where key is the UDP command, and value the associated
+        callback function. 
+        Note: the callback function must accept one argument (a tuple) whose content will
+        be filled by the UDP command args.
+        @arg cbSingleChar : a dictionary where key is a single-char UDP command, and value the
+        associated callback which must accept one argument (the UDP command argument).
         """
         self.udpSocket = None
         self.lastRemoteAddr = ""
         self.lastRemotePort = 0
         self.cbList = cbList
+        self.cbArgList = cbArgList
+        self.cbSingleChar = cbSingleChar
 
     def bind(self,localIP,localPort):
         """
@@ -54,14 +63,35 @@ class UdpServer:
         print("Donnees : "+udpCommand)
 
         udpCommand = udpCommand.strip().lower()
+        
+        # The UDP response message
 
         if udpCommand in self.cbList:
-            # Execute the command
+            # Execute the command which has no argument
             responseMsg = self.cbList[udpCommand]()
-            # Send the response
             self.sendTo(responseMsg,(self.lastRemoteAddr,self.lastRemotePort))
+        elif "+" in udpCommand:
+            # The given command seems to have args (separated by +)
+            commandArgs = udpCommand.split("+")
+            commandName = commandArgs[0]
+            if commandName in self.cbArgList:
+                # Execute the command which takes arguments
+                responseMsg = self.cbArgList[commandName](tuple(commandArgs[1:]))
+                self.sendTo(responseMsg,(self.lastRemoteAddr,self.lastRemotePort))
+            else:
+                print("UDP command with args '"+commandName+"' is ignored (no associated callback)")
         else:
-            print("UDP command '"+udpCommand+"' is ignored (no associated callback)")            
+            # The given command seems to be a single-char command
+            if len(udpCommand)>0:
+                commandName = udpCommand[0]
+                commandArg = udpCommand[1:]
+                if commandName in self.cbSingleChar:
+                    responseMsg = self.cbSingleChar[commandName](commandArg)
+                    self.sendTo(responseMsg,(self.lastRemoteAddr,self.lastRemotePort))
+                else:
+                    print("UDP single char-command '"+udpCommand+"' is ignored (no associated callback)")      
+            else:
+                print("UDP command '"+udpCommand+"' is ignored (empty command)")      
 
     def getLastRemote(self):
         """

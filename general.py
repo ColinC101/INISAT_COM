@@ -1,3 +1,4 @@
+import math
 from udpserver import UdpServer
 from eventsource import EventSource
 import utime
@@ -513,6 +514,76 @@ def cbCamOff():
 
 ## END - RAW UDP COMMANDS ##
 
+## BEGIN - UDP COMMANDS WITH ARGS ##
+def cbTCons(args):
+    """
+    Change the console updating interval
+    """
+    if len(args) != 1:
+        return "Commande ERROR !"
+    
+    try:
+        periodValue = int(args[0])
+        if (periodValue>4 and periodValue<3601):
+            state.consoleInterval = periodValue * 1000
+            return "Config tcons+"+args[0]+" recue .."
+    except:
+        pass
+    return "Veuillez choisir une periode entre 5 et 3600 secondes !"
+
+
+def cbRiRot(args):
+    """
+    Set the inertia wheel rotation speed and direction
+    """
+    if len(args) != 2:
+        return "Commande ERROR !"
+
+    rotationDirMap = {"h":0,"a":1}
+    rotationDir = args[0]
+    if not(rotationDir in rotationDirMap):
+        return "Veuillez choisir A ou H pour le Sens de rotation !"
+    try:  
+        angularSpeedRatio = int(args[1])
+        if (angularSpeedRatio<0 or angularSpeedRatio >100):
+            return "Veuillez choisir une valeur entre 0 et 100 % !"
+        pwmXdc = (100 - angularSpeedRatio) / 100
+
+        # Set speed to null by opening P-Channel transistor
+        state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1.0) 
+        
+        # Set the new direction for rotation
+        state.ioctlObj.getObject(Ioctl.KEY_DIR_X).value(rotationDirMap[rotationDir])
+
+        # Set new speed for inertial wheel
+        state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(pwmXdc)
+        
+        print("Commande recue pour (R.cyclique): " + str(1-pwmXdc) + ", sens :" + rotationDir)
+        return "Config rirot+"+args[0]+"+"+args[1]+" recue .."
+    except:
+        pass
+    return "Veuillez choisir une valeur entre 0 et 100 % !"
+        
+def cbMgRot(args):
+    """
+    Initiate a rotation of the satellite via the magneto-couplers
+    """
+    if len(args) != 1:
+        return "Commande ERROR !"
+    
+    try:
+        rotationAngle = int(args[0])
+        if ((rotationAngle < -30) or (rotationAngle > -30) or (rotationAngle == 0)):
+            return "Veuillez choisir une valeur entre -30 et 30° (et != 0) !"
+
+        print("Commande Magnetocoupleur recue pour: " + args[0] + "°")
+        magnetoRotate(rotationAngle)
+        return "Config mgrot+"+args[0]+" recue .."
+    except:
+        pass
+    return "Veuillez choisir une valeur entre -30 et 30° (et != 0) !"
+## END - UDP COMMANDS WITH ARGS ##
+
 #### END - UDP COMMANDS #####
 
 def gnssTransmitUDP():
@@ -536,6 +607,53 @@ def gnssTransmitUDP():
     except OSError:
         print("Echec lors de l'ouverture du fichier Trajectoire_GNSS pour transmission sur la liaison UDP")
 
+def magnetoRotate(angle):
+    """
+    Rotate the satellite to the specified angle, via the magneto-couplers
+    """
+    Bx = float(state.readingsJSON[aliases.JSON_MAGNETICFIELD_X])
+    By = float(state.readingsJSON[aliases.JSON_MAGNETICFIELD_Y])
+    angB = round(math.atan2(By,Bx) * 180 / math.pi)
+    angTot = angB - angle
+    if(angTot > 360):
+        angTot -= 360
+    if(angTot < -360):
+        angTot += 360
+    
+    Ix = math.cos(angTot * math.pi / 180)
+    Iy = math.sin(angTot * math.pi / 180)
+
+    dirX = 0
+    dirY = 0
+    if (Ix > 0):
+        dirX = 0
+    else:
+        dirX = 1
+    
+    if (Iy > 0):
+        dirY = 0
+    else:
+        dirY = 1
+
+    iXdc = funcMap(abs(Ix*100), 100, 0, 150, 255)
+    iYdc = funcMap(abs(Iy*100), 100, 0, 150, 255)
+
+    # Defining current direction of magneto-coupler X
+    state.ioctlObj.getObject(Ioctl.KEY_DIR_X).value(dirX)
+    
+    # And its new duty cycle
+    state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(iXdc)
+
+    # Same for magneto-coupler Y
+    state.ioctlObj.getObject(Ioctl.KEY_DIR_Y).value(dirY)
+    state.ioctlObj.getObject(Ioctl.KEY_PWM_Y).duty_cycle(iYdc)
+
+    print("Commande recue pour : " + str(angle) + "°.")
+
+
+def funcMap(val,inMin,inMax,outMin,outMax):
+    return ((val - inMin) * (outMax - outMin) / (inMax - inMin)) + outMin  
+
 cbList = {"none":cbNone,"stopudp":cbStopUDP,"beginudp":cbBeginUDP,"state":cbState,"cameraon":cbCameraOn,
 "cameraoff":cbCameraOff,"loraon":cbLoRaOn,"loraoff":cbLoRaOff,"test":cbTest,"autotest":cbAutoTest,
 "gnsson":cbGNSSon,"gnssoff":cbGNSSoff,"gnsssave":cbGNSSsave,"epson":cbEPSon,"epsoff":cbEPSoff,
@@ -549,6 +667,10 @@ cbList = {"none":cbNone,"stopudp":cbStopUDP,"beginudp":cbBeginUDP,"state":cbStat
 "magt1":cbMagt1,"magt2":cbMagt2,"magt3":cbMagt3,"magt4":cbMagt4,"stpmgt":cbStopMgt,"help":cbHelp,
 "camon":cbCamOn,"camoff":cbCamOff}
 
+cbArgList = {"tcons":cbTCons,"rirot":cbRiRot,"mgrot":cbMgRot}
+
+cbSingleCharList = {}
+
 eventList = {"events": consoleEvent, "events2": graphEvent,
              "events3": interfaceEvent, "events4": autotestEvent,
              "events5": demagEvent}
@@ -558,7 +680,7 @@ def startUDPServer(localIP):
     Start the UDP Server
     """
     global udpServ
-    udpServ = UdpServer(cbList)
+    udpServ = UdpServer(cbList,cbArgList,cbSingleCharList)
     udpServ.bind(localIP,udpPort)
 
 def initSystemHardware():
