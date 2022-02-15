@@ -23,6 +23,9 @@ demagEvent = EventSource("demagEvent")
 udpServ = None
 udpPort = 9991
 
+# Mapping between rotation direction command and pin value
+rotationDirMap = {"h":0,"a":1}
+
 def initLoRa():
     """
     Init LoRa
@@ -524,13 +527,14 @@ def cbTCons(args):
     
     try:
         periodValue = int(args[0])
-        if (periodValue>4 and periodValue<3601):
-            state.consoleInterval = periodValue * 1000
-            return "Config tcons+"+args[0]+" recue .."
     except:
-        pass
-    return "Veuillez choisir une periode entre 5 et 3600 secondes !"
+        return "Veuillez choisir une periode entre 5 et 3600 secondes !"
 
+    if (periodValue>4 and periodValue<3601):
+        state.consoleInterval = periodValue * 1000
+        return "Config tcons+"+args[0]+" recue .."
+
+    return "Veuillez choisir une periode entre 5 et 3600 secondes !"
 
 def cbRiRot(args):
     """
@@ -539,30 +543,22 @@ def cbRiRot(args):
     if len(args) != 2:
         return "Commande ERROR !"
 
-    rotationDirMap = {"h":0,"a":1}
     rotationDir = args[0]
     if not(rotationDir in rotationDirMap):
         return "Veuillez choisir A ou H pour le Sens de rotation !"
     try:  
         angularSpeedRatio = int(args[1])
-        if (angularSpeedRatio<0 or angularSpeedRatio >100):
-            return "Veuillez choisir une valeur entre 0 et 100 % !"
-        pwmXdc = (100 - angularSpeedRatio) / 100
-
-        # Set speed to null by opening P-Channel transistor
-        state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1.0) 
-        
-        # Set the new direction for rotation
-        state.ioctlObj.getObject(Ioctl.KEY_DIR_X).value(rotationDirMap[rotationDir])
-
-        # Set new speed for inertial wheel
-        state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(pwmXdc)
-        
-        print("Commande recue pour (R.cyclique): " + str(1-pwmXdc) + ", sens :" + rotationDir)
-        return "Config rirot+"+args[0]+"+"+args[1]+" recue .."
     except:
-        pass
-    return "Veuillez choisir une valeur entre 0 et 100 % !"
+        return "Veuillez choisir une valeur entre 0 et 100 % !"
+
+    if (angularSpeedRatio<0 or angularSpeedRatio >100):
+        return "Veuillez choisir une valeur entre 0 et 100 % !"
+
+    unitAngularSpeed = angularSpeedRatio / 100
+    setInertiaWheelSpeed(unitAngularSpeed,rotationDir)
+
+    return "Config rirot+"+args[0]+"+"+args[1]+" recue .."
+
         
 def cbMgRot(args):
     """
@@ -573,17 +569,78 @@ def cbMgRot(args):
     
     try:
         rotationAngle = int(args[0])
-        if ((rotationAngle < -30) or (rotationAngle > -30) or (rotationAngle == 0)):
-            return "Veuillez choisir une valeur entre -30 et 30° (et != 0) !"
-
-        print("Commande Magnetocoupleur recue pour: " + args[0] + "°")
-        magnetoRotate(rotationAngle)
-        return "Config mgrot+"+args[0]+" recue .."
     except:
-        pass
-    return "Veuillez choisir une valeur entre -30 et 30° (et != 0) !"
+        return "Veuillez choisir une valeur entre -30 et 30° (et != 0) !"
+
+    if ((rotationAngle < -30) or (rotationAngle > 30) or (rotationAngle == 0)):
+        return "Veuillez choisir une valeur entre -30 et 30° (et != 0) !"
+
+    print("Commande Magnetocoupleur recue pour: " + str(rotationAngle) + "°")
+    magnetoRotate(rotationAngle)
+    return "Config mgrot+"+args[0]+" recue .."
+
 ## END - UDP COMMANDS WITH ARGS ##
 
+## BEGIN - SINGLE-CHAR UDP COMMANDS ##
+def cbSingleT(arg):
+    """
+    ARTH command used to control the console updating interval
+    """
+    try:
+        periodValue = int(arg)
+    except:
+        return "Veuillez choisir une periode entre 5 et 3600 secondes !"
+
+    if (periodValue>4 and periodValue<3601):
+        state.consoleInterval = periodValue * 1000
+        return getState()
+    
+    return "Veuillez choisir une periode entre 5 et 3600 secondes !"
+
+    
+
+def cbSingleR(arg):
+    """
+    ARTH command used to set the inertia wheel rotation / direction
+    """
+    if len(arg)<2:
+        return "Commande ERROR !"
+    
+    rotationDir = arg[0]
+    if not(rotationDir in rotationDirMap):
+        return "Veuillez choisir A ou H pour le Sens de rotation !"
+
+    try:  
+        angularSpeedRatio = int(arg[1:])
+    except:
+        return "Veuillez choisir une valeur entre 0 et 100 % !"
+
+    if (angularSpeedRatio<0 or angularSpeedRatio >100):
+        return "Veuillez choisir une valeur entre 0 et 100 % !"
+
+    unitAngularSpeed = angularSpeedRatio / 100
+    setInertiaWheelSpeed(unitAngularSpeed,rotationDir)
+
+    return getState()
+
+def cbSingleM(arg):
+    """
+    ARTH command used to initiate a rotation of the satellite via the magneto-couplers
+    """
+    try:
+        rotationAngle = int(arg)
+    except:
+        return "Veuillez choisir une valeur entre -30 et 30° (et != 0) !"
+
+    if ((rotationAngle < -30) or (rotationAngle > 30) or (rotationAngle == 0)):
+        return "Veuillez choisir une valeur entre -30 et 30° (et != 0) !"
+
+    print("Commande Magnetocoupleur recue pour: " + str(rotationAngle) + "°")
+    magnetoRotate(rotationAngle)
+
+    return getState()
+
+## END - SINGLE-CHAR UDP COMMANDS ##
 #### END - UDP COMMANDS #####
 
 def gnssTransmitUDP():
@@ -607,6 +664,24 @@ def gnssTransmitUDP():
     except OSError:
         print("Echec lors de l'ouverture du fichier Trajectoire_GNSS pour transmission sur la liaison UDP")
 
+def setInertiaWheelSpeed(speed,dir):
+    """
+    Set the inertia wheel speed to the given value
+    @arg speed(float): the speed of the inertia wheel (1.0 => full speed, 0 => stopped)
+    @arg dir(string): the direction of rotation ("h" or "a" according to rotationDirMap)
+    """
+    
+    # Set speed to null by opening P-Channel transistor
+    state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1.0) 
+    
+    # Set the new direction for rotation
+    state.ioctlObj.getObject(Ioctl.KEY_DIR_X).value(rotationDirMap[dir])
+
+    # Set new speed for inertial wheel
+    state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1-speed)
+    
+    print("Commande recue pour (R.cyclique): " + str(speed) + ", sens :" + dir)
+    
 def magnetoRotate(angle):
     """
     Rotate the satellite to the specified angle, via the magneto-couplers
@@ -664,12 +739,12 @@ cbList = {"none":cbNone,"stopudp":cbStopUDP,"beginudp":cbBeginUDP,"state":cbStat
 "acclnon":cbAccLinOn,"acclnoff":cbAccLinOff,"gravon":cbGravOn,"gravoff":cbGravOff,"lumion":cbLumiOn,
 "lumioff":cbLumiOff,"locon":cbLocOn,"locoff":cbLocOff,"nmeaon":cbNMEAon,"nmeaoff":cbNMEAoff,
 "allon":cbAllOn,"alloff":cbAllOff,"lorastate":cbLoraState,"camstate":cbCameraState,"dmagon":cbDemagOn,
-"magt1":cbMagt1,"magt2":cbMagt2,"magt3":cbMagt3,"magt4":cbMagt4,"stpmgt":cbStopMgt,"help":cbHelp,
-"camon":cbCamOn,"camoff":cbCamOff}
+"magt1":cbMagt1,"mcamoffagt2":cbMagt2,"magt3":cbMagt3,"magt4":cbMagt4,"stpmgt":cbStopMgt,"help":cbHelp,
+"camon":cbCamOn,"":cbCamOff}
 
 cbArgList = {"tcons":cbTCons,"rirot":cbRiRot,"mgrot":cbMgRot}
 
-cbSingleCharList = {}
+cbSingleCharList = {"t":cbSingleT,"r":cbSingleR,"m":cbSingleM}
 
 eventList = {"events": consoleEvent, "events2": graphEvent,
              "events3": interfaceEvent, "events4": autotestEvent,

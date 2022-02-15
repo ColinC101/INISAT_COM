@@ -1,5 +1,6 @@
 from socket import AF_INET, IPPROTO_UDP, SOCK_DGRAM, socket
 import _thread
+import state
 
 class UdpServer:
     """
@@ -69,7 +70,7 @@ class UdpServer:
         if udpCommand in self.cbList:
             # Execute the command which has no argument
             responseMsg = self.cbList[udpCommand]()
-            self.sendTo(responseMsg,(self.lastRemoteAddr,self.lastRemotePort))
+            self.sendToLastRemote(responseMsg+"\r\n")
         elif "+" in udpCommand:
             # The given command seems to have args (separated by +)
             commandArgs = udpCommand.split("+")
@@ -77,7 +78,7 @@ class UdpServer:
             if commandName in self.cbArgList:
                 # Execute the command which takes arguments
                 responseMsg = self.cbArgList[commandName](tuple(commandArgs[1:]))
-                self.sendTo(responseMsg,(self.lastRemoteAddr,self.lastRemotePort))
+                self.sendToLastRemote(responseMsg+"\r\n")
             else:
                 print("UDP command with args '"+commandName+"' is ignored (no associated callback)")
         else:
@@ -87,10 +88,24 @@ class UdpServer:
                 commandArg = udpCommand[1:]
                 if commandName in self.cbSingleChar:
                     responseMsg = self.cbSingleChar[commandName](commandArg)
-                    self.sendTo(responseMsg,(self.lastRemoteAddr,self.lastRemotePort))
+                    self.sendToLastRemote(responseMsg+"\r\n")
+                elif len(udpCommand) == 14:
+                    # Special command used to configure the console logs
+                    newConsConfig = list(udpCommand)
+
+                    for cfgValue in newConsConfig:
+                        if (cfgValue != "0" and cfgValue != "1"):
+                            self.sendToLastRemote("Commande ERROR !\r\n")
+                            return
+                            
+                    # Set the new console config
+                    state.consoleConfig = newConsConfig 
+                    self.sendToLastRemote("Config console recue ..\r\n")
                 else:
+                    self.sendToLastRemote("Commande ERROR !\r\n")
                     print("UDP single char-command '"+udpCommand+"' is ignored (no associated callback)")      
             else:
+                self.sendToLastRemote("Commande ERROR !\r\n")
                 print("UDP command '"+udpCommand+"' is ignored (empty command)")      
 
     def getLastRemote(self):
