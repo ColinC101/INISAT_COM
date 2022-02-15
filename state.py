@@ -4,7 +4,7 @@ def init():
     """
     Init state variables
     """
-    global consoleConfig,autoTesting,consoleInterval,modeGnss,camStatus,udpCom,testMag,ioctlObj,loraObj,gnssStartTime,chartsConfig,deMag
+    global consoleConfig,autoTesting,consoleInterval,modeGnss,camStatus,udpCom,testMag,ioctlObj,loraObj,gnssStartTime,chartsConfig,deMag,readingsJSON
 
     # Console configuration
     consoleConfig = aliases.CONSOLE_CONFIG_DISABLED
@@ -41,3 +41,7 @@ def init():
 
     # Charts configuration
     chartsConfig = aliases.CHARTS_CONFIG_DISABLED
+
+    # All the data retreived from OBC
+    # Keys are listed in aliases.py under JSON ACCESS
+    readingsJSON = {}
