@@ -80,9 +80,9 @@ JSON_ALTITUDE = "var9"
 JSON_PRESSION = "var10"
 
 # Euler
-JSON_EULER_ROULIS = "var11"
-JSON_EULER_TANGAGE = "var12"
-JSON_EULER_LACET = "var13"
+JSON_EULER_ROLL = "var11"
+JSON_EULER_PITCH = "var12"
+JSON_EULER_YAW = "var13"
 
 # Quaternion
 JSON_QUATERNION_W = "var14"
@@ -163,20 +163,45 @@ CONSCONFIG_LUMINANCE = 11
 CONSCONFIG_GNSS = 12
 CONSCONFIG_NMEA = 13
 
+
+
 #######################################
-############  GNSS   ##################
+###############  GNSS  ################
 #######################################
+
 MODE_GNSS_FINISHED = 0
 MODE_GNSS_RUNNING = 1
 MODE_GNSS_STOPPED = 2
 
+
+
 #######################################
-############  CONSOLE CONFIG ##########
+###########  CONSOLE CONFIG  ##########
 #######################################
+
 CONSOLE_CONFIG_DISABLED = ["0","0","0","0","0","0","0","0","0","0","0","0","0","0"]
 CONSOLE_CONFIG_ENABLED = ["1","1","1","1","1","1","1","1","1","1","1","1","1","1"]
+
+
 
 #######################################
 ############  CHART CONFIG ############
 #######################################
+
+# General aliases for setup
 CHARTS_CONFIG_DISABLED = ["0","0","0","0","0","0"]
+
+# Chart types
+CHART_DISABLED = '0'
+CHART_EPS = 'k'
+CHART_TEMPERATURE = 'h'
+CHART_ALTITUDE = 'j'
+CHART_PRESSION = 'j'
+CHART_EULER = 'a'
+CHART_QUATERNION = 'b'
+CHART_ANGULAR_SPEED = 'c'
+CHART_ACCELERATION = 'd'
+CHART_MAGNETIC_FIELD = 'e'
+CHART_LINEAR_ACCELERATION = 'f'
+CHART_GRAVITY = 'g'
+CHART_LUMINANCE = 'l'
