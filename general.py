@@ -1,3 +1,4 @@
+import math
 from udpserver import UdpServer
 from eventsource import EventSource
 import utime
@@ -6,10 +7,12 @@ from machine import PWM
 from machine import UART
 from machine import Pin
 from ioctl import Ioctl
+import wifi
 import LoRa
 import eventsource
 import state
 import tcpServer
+import aliases
 
 consoleEvent = EventSource("consoleEvent")
 graphEvent = EventSource("graphEvent")
@@ -19,7 +22,15 @@ demagEvent = EventSource("demagEvent")
 
 # UDP Server object
 udpServ = None
-udpPort = 9991
+
+# Mapping between rotation direction command and pin value
+rotationDirMap = {"h":0,"a":1}
+
+def initWiFi():
+    """
+    Init WiFi
+    """
+    state.wifiObj.initWifi()
 
 def initLoRa():
     """
@@ -110,7 +121,7 @@ def cbTest():
     Start an auto test
     """
     uartFlush()
-    state.ioctlObj.getObject(Ioctl.KEY_UART_OBC).write('A')
+    state.ioctlObj.getObject(Ioctl.KEY_UART_OBC).write(aliases.UART_COMMAND_AUTOTEST)
     state.autoTesting = 1
     return getState()
 
@@ -119,7 +130,7 @@ def cbAutoTest():
     Start also an auto test
     """
     uartFlush()
-    state.ioctlObj.getObject(Ioctl.KEY_UART_OBC).write('A')
+    state.ioctlObj.getObject(Ioctl.KEY_UART_OBC).write(aliases.UART_COMMAND_AUTOTEST)
     state.autoTesting = 1
     return "Config autotest lancee .."
 
@@ -127,33 +138,619 @@ def cbGNSSon():
     """
     Activate GNSS
     """
-    state.modeGnss = 1
+    state.modeGnss = aliases.MODE_GNSS_RUNNING
+    state.gnssStartTime = utime.ticks_ms()
     uartFlush()
-    # TODO
+
+    # No console information fields
+    state.consoleConfig = aliases.CONSOLE_CONFIG_DISABLED
+    
+    # No charts
+    state.chartsConfig = aliases.CHARTS_CONFIG_DISABLED
+
+    try:
+        with open("web/Trajectoire_GNSS.txt", 'w') as infile:
+            infile.close()
+            print("Commande GNSS recue et fichier .txt cree ... ");
+    except OSError:
+        print("Echec lors de la creation du fichier Trajectoire_GNSS")
+
     return getState()
 
 def cbGNSSoff():
     """
     Disable GNSS
     """
-    state.modeGnss = 2
+    state.modeGnss = aliases.MODE_GNSS_STOPPED
     return getState()
 
 def cbGNSSsave():
     """
     Save GNSS data
     """
-    state.modeGnss = 0
-    # TODO
+    state.modeGnss = aliases.MODE_GNSS_FINISHED
+    gnssTransmitUDP()
     return getState()
 
 ## END - ARTH INERFACE COMMAND ##
 
+## BEGIN - RAW UDP COMMANDS ##
 
+def cbEPSon():
+    """
+    Activate EPS logging in the console
+    """
+    state.consoleConfig[aliases.CONSCONFIG_EPS]="1"
+    return "Config epson recue .."
+
+def cbEPSoff():
+    """
+    Deactivate EPS logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_EPS]="0"
+    return "Config epsoff recue .."
+
+def cbMPLon():
+    """
+    Activate MPL logging 
+    """
+    state.consoleConfig[aliases.CONSCONFIG_TEMPERATURE]="1"
+    state.consoleConfig[aliases.CONSCONFIG_ALTITUDE]="1"
+    state.consoleConfig[aliases.CONSCONFIG_PRESSION]="1"
+    return "Config mplon recue .."
+
+def cbMPLoff():
+    """
+    Deactivate MPL logging 
+    """
+    state.consoleConfig[aliases.CONSCONFIG_TEMPERATURE]="0"
+    state.consoleConfig[aliases.CONSCONFIG_ALTITUDE]="0"
+    state.consoleConfig[aliases.CONSCONFIG_PRESSION]="0"
+    return "Config mploff recue .."
+
+def cbTempOn():
+    """
+    Activate temperature logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_TEMPERATURE]="1"
+    return "Config tempon recue .."
+
+def cbTempOff():
+    """
+    Deactivate temperature logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_TEMPERATURE]="0"
+    return "Config tempoff recue .."
+
+def cbAltOn():
+    """
+    Activate altitude logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_ALTITUDE]="1"
+    return "Config alton recue .."
+
+def cbAltOff():
+    """
+    Deactivate altitude logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_ALTITUDE]="0"
+    return "Config altoff recue .."
+
+def cbPresOn():
+    """
+    Activate pressure logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_PRESSION]="1"
+    return "Config preson recue .."
+
+def cbPresOff():
+    """
+    Deactivate pressure logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_PRESSION]="0"
+    return "Config presoff recue .."
+
+def cbBNOon():
+    """
+    Activate BNO logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_EULER]="1"
+    state.consoleConfig[aliases.CONSCONFIG_QUATERNION]="1"
+    state.consoleConfig[aliases.CONSCONFIG_ANGULAR_SPEED]="1"
+    state.consoleConfig[aliases.CONSCONFIG_ACCELERATION]="1"
+    state.consoleConfig[aliases.CONSCONFIG_MAGNETIC_FIELD]="1"
+    state.consoleConfig[aliases.CONSCONFIG_LINEAR_ACCELERATION]="1"
+    state.consoleConfig[aliases.CONSCONFIG_GRAVITY]="1"
+    return "Config bnoon recue .."
+
+def cbBNOoff():
+    """
+    Deactivate BNO logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_EULER]="0"
+    state.consoleConfig[aliases.CONSCONFIG_QUATERNION]="0"
+    state.consoleConfig[aliases.CONSCONFIG_ANGULAR_SPEED]="0"
+    state.consoleConfig[aliases.CONSCONFIG_ACCELERATION]="0"
+    state.consoleConfig[aliases.CONSCONFIG_MAGNETIC_FIELD]="0"
+    state.consoleConfig[aliases.CONSCONFIG_LINEAR_ACCELERATION]="0"
+    state.consoleConfig[aliases.CONSCONFIG_GRAVITY]="0"
+    return "Config bnooff recue .."
+
+def cbEulerOn():
+    """
+    Activate Euler logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_EULER]="1" 
+    return "Config euleron recue .."
+
+def cbEulerOff():
+    """
+    Deactivate Euler logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_EULER]="0" 
+    return "Config euleroff recue .."
+
+def cbQuatOn():
+    """
+    Activate quaternion logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_QUATERNION]="1" 
+    return "Config quaton recue .."
+
+def cbQuatOff():
+    """
+    Deactivate quaternion logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_QUATERNION]="0" 
+    return "Config quatoff recue .."
+
+def cbVangOn():
+    """
+    Activate angular speed logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_ANGULAR_SPEED]="1" 
+    return "Config vangon recue .."
+
+def cbVangOff():
+    """
+    Deactivate angular speed logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_ANGULAR_SPEED]="0" 
+    return "Config vangoff recue .."
+
+def cbAccOn():
+    """
+    Activate acceleration logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_ACCELERATION]="1" 
+    return "Config accon recue .."
+
+def cbAccOff():
+    """
+    Deactivate acceleration logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_ACCELERATION]="0" 
+    return "Config accoff recue .."
+
+def cbMagOn():
+    """
+    Activate magnetic field logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_MAGNETIC_FIELD]="1" 
+    return "Config magon recue .."
+
+def cbMagOff():
+    """
+    Deactivate magnetic field logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_MAGNETIC_FIELD]="0" 
+    return "Config magoff recue .."
+
+def cbAccLinOn():
+    """
+    Activate linear acceleration logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_LINEAR_ACCELERATION]="1" 
+    return "Config acclnon recue .."
+
+def cbAccLinOff():
+    """
+    Deactivate linear acceleration logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_LINEAR_ACCELERATION]="0" 
+    return "Config acclnoff recue .."
+
+def cbGravOn():
+    """
+    Activate gravity logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_GRAVITY]="1" 
+    return "Config gravon recue .."
+
+def cbGravOff():
+    """
+    Deactivate gravity logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_GRAVITY]="0" 
+    return "Config gravoff recue .."
+
+def cbLumiOn():
+    """
+    Activate luminance logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_LUMINANCE]="1"
+    return "Config lumion recue .."
+
+def cbLumiOff():
+    """
+    Deactivate luminance logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_LUMINANCE]="0"
+    return "Config lumioff recue .."
+
+def cbLocOn():
+    """
+    Activate location (GNSS) logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_GNSS]="1"
+    return "Config locon recue .."
+    
+def cbLocOff():
+    """
+    Deactivate location (GNSS) logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_GNSS]="0"
+    return "Config locoff recue .."
+
+def cbNMEAon():
+    """
+    Activate NMEA logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_NMEA]="1"
+    return "Config nmeaon recue .."
+
+def cbNMEAoff():
+    """
+    Deactivate NMEA logging
+    """
+    state.consoleConfig[aliases.CONSCONFIG_NMEA]="0"
+    return "Config nmeaoff recue .."
+
+def cbAllOn():
+    """
+    Activate all logs
+    """
+    state.consoleConfig = aliases.CONSOLE_CONFIG_ENABLED
+    return "Config allon recue .."
+
+def cbAllOff():
+    """
+    Deactivate all logs
+    """
+    state.consoleConfig = aliases.CONSOLE_CONFIG_DISABLED
+    return "Config alloff recue .."
+
+def cbLoraState():
+    """
+    Return LoRa state
+    """ 
+    if state.loraObj.getLoraStatus():
+        return "Etat LORA est : ON"
+    else:
+        return "Etat LORA est : OFF"
+
+def cbCameraState():
+    """
+    Return camera state
+    """ 
+    if state.camStatus == 1:
+        return "Etat CAM est : ON"
+    else:
+        return "Etat CAM est : OFF"
+
+def cbDemagOn():
+    """
+    Start degaussing
+    """
+    state.deMag = 1
+    return "Config dmagon recue, veuillez attendre la fin .."
+
+def cbMagt1():
+    """
+    Start test 1 for magneto-coupler
+    """
+    # state.testMag = 1
+    return "Config magt1 recue .. COMMANDE DESACTIVEE POUR L'INSTANT .."
+
+def cbMagt2():
+    """
+    Start test 2 for magneto-coupler
+    """
+    # state.testMag = 2
+    return "Config magt2 recue .. COMMANDE DESACTIVEE POUR L'INSTANT .."
+
+def cbMagt3():
+    """
+    Start test 3 for magneto-coupler
+    """
+    # state.testMag = 3
+    return "Config magt3 recue .. COMMANDE DESACTIVEE POUR L'INSTANT .."
+
+def cbMagt4():
+    """
+    Start test 4 for magneto-coupler
+    """
+    # state.testMag = 4
+    return "Config magt4 recue .. COMMANDE DESACTIVEE POUR L'INSTANT .."
+    
+def cbStopMgt():
+    """
+    Stop magneto-coupler test
+    """
+    state.testMag = 0
+    return "Config stpmgt recue, veuillez attendre la fin .."
+
+def cbHelp():
+    """
+    Return help message
+    """
+    try:
+        with open("help.txt", 'rb') as infile:
+            fileLines = infile.read()
+            infile.close()
+            return fileLines.decode("utf-8")
+    except OSError:
+        print("Echec lors de l'ouverture du fichier d'aide")
+
+def cbCamOn():
+    """
+    Turn on the camera
+    """
+    state.camStatus = 1
+    state.ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value(1)
+    print("Camera activee")
+    return "Config camon recue .."
+
+def cbCamOff():
+    """
+    Turn off the camera
+    """
+    state.camStatus = 0
+    state.ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value(0)
+    print("Camera desactivee")
+    return "Config camoff recue .."
+
+
+## END - RAW UDP COMMANDS ##
+
+## BEGIN - UDP COMMANDS WITH ARGS ##
+def cbTCons(args):
+    """
+    Change the console updating interval
+    """
+    if len(args) != 1:
+        return "Commande ERROR !"
+    
+    try:
+        periodValue = int(args[0])
+    except:
+        return "Veuillez choisir une periode entre 5 et 3600 secondes !"
+
+    if (periodValue>4 and periodValue<3601):
+        state.consoleInterval = periodValue * 1000
+        return "Config tcons+"+args[0]+" recue .."
+
+    return "Veuillez choisir une periode entre 5 et 3600 secondes !"
+
+def cbRiRot(args):
+    """
+    Set the inertia wheel rotation speed and direction
+    """
+    if len(args) != 2:
+        return "Commande ERROR !"
+
+    rotationDir = args[0]
+    if not(rotationDir in rotationDirMap):
+        return "Veuillez choisir A ou H pour le Sens de rotation !"
+    try:  
+        angularSpeedRatio = int(args[1])
+    except:
+        return "Veuillez choisir une valeur entre 0 et 100 % !"
+
+    if (angularSpeedRatio<0 or angularSpeedRatio >100):
+        return "Veuillez choisir une valeur entre 0 et 100 % !"
+
+    unitAngularSpeed = angularSpeedRatio / 100
+    setInertiaWheelSpeed(unitAngularSpeed,rotationDir)
+
+    return "Config rirot+"+args[0]+"+"+args[1]+" recue .."
+
+        
+def cbMgRot(args):
+    """
+    Initiate a rotation of the satellite via the magneto-couplers
+    """
+    if len(args) != 1:
+        return "Commande ERROR !"
+    
+    try:
+        rotationAngle = int(args[0])
+    except:
+        return "Veuillez choisir une valeur entre -30 et 30° (et != 0) !"
+
+    if ((rotationAngle < -30) or (rotationAngle > 30) or (rotationAngle == 0)):
+        return "Veuillez choisir une valeur entre -30 et 30° (et != 0) !"
+
+    print("Commande Magnetocoupleur recue pour: " + str(rotationAngle) + "°")
+    magnetoRotate(rotationAngle)
+    return "Config mgrot+"+args[0]+" recue .."
+
+## END - UDP COMMANDS WITH ARGS ##
+
+## BEGIN - SINGLE-CHAR UDP COMMANDS ##
+def cbSingleT(arg):
+    """
+    ARTH command used to control the console updating interval
+    """
+    try:
+        periodValue = int(arg)
+    except:
+        return "Veuillez choisir une periode entre 5 et 3600 secondes !"
+
+    if (periodValue>4 and periodValue<3601):
+        state.consoleInterval = periodValue * 1000
+        return getState()
+    
+    return "Veuillez choisir une periode entre 5 et 3600 secondes !"
+
+    
+
+def cbSingleR(arg):
+    """
+    ARTH command used to set the inertia wheel rotation / direction
+    """
+    if len(arg)<2:
+        return "Commande ERROR !"
+    
+    rotationDir = arg[0]
+    if not(rotationDir in rotationDirMap):
+        return "Veuillez choisir A ou H pour le Sens de rotation !"
+
+    try:  
+        angularSpeedRatio = int(arg[1:])
+    except:
+        return "Veuillez choisir une valeur entre 0 et 100 % !"
+
+    if (angularSpeedRatio<0 or angularSpeedRatio >100):
+        return "Veuillez choisir une valeur entre 0 et 100 % !"
+
+    unitAngularSpeed = angularSpeedRatio / 100
+    setInertiaWheelSpeed(unitAngularSpeed,rotationDir)
+
+    return getState()
+
+def cbSingleM(arg):
+    """
+    ARTH command used to initiate a rotation of the satellite via the magneto-couplers
+    """
+    try:
+        rotationAngle = int(arg)
+    except:
+        return "Veuillez choisir une valeur entre -30 et 30° (et != 0) !"
+
+    if ((rotationAngle < -30) or (rotationAngle > 30) or (rotationAngle == 0)):
+        return "Veuillez choisir une valeur entre -30 et 30° (et != 0) !"
+
+    print("Commande Magnetocoupleur recue pour: " + str(rotationAngle) + "°")
+    magnetoRotate(rotationAngle)
+
+    return getState()
+
+## END - SINGLE-CHAR UDP COMMANDS ##
 #### END - UDP COMMANDS #####
+
+def gnssTransmitUDP():
+    """
+    Transmit GNSS data stored in a file, over UDP
+    """
+    try:
+        with open("web/Trajectoire_GNSS.txt", 'rb') as infile:
+            fileLines = infile.readlines()
+            msgToSend = ""
+            for line in fileLines:
+                strLine  = line.decode("utf-8")
+                if strLine[-1] == "\n":
+                    # Remove trailing new line if it exists
+                    strLine = strLine[:-1]     
+                msgToSend = "W"+strLine+"@"+"\r\n"
+                udpServ.sendToLastRemote(msgToSend)
+                print("Ligne envoyee: "+msgToSend)
+                utime.sleep_ms(100)
+            udpServ.sendToLastRemote("W#@\r\n")
+    except OSError:
+        print("Echec lors de l'ouverture du fichier Trajectoire_GNSS pour transmission sur la liaison UDP")
+
+def setInertiaWheelSpeed(speed,dir):
+    """
+    Set the inertia wheel speed to the given value
+    @arg speed(float): the speed of the inertia wheel (1.0 => full speed, 0 => stopped)
+    @arg dir(string): the direction of rotation ("h" or "a" according to rotationDirMap)
+    """
+    
+    # Set speed to null by opening P-Channel transistor
+    state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1.0) 
+    
+    # Set the new direction for rotation
+    state.ioctlObj.getObject(Ioctl.KEY_DIR_X).value(rotationDirMap[dir])
+
+    # Set new speed for inertial wheel
+    state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1-speed)
+    
+    print("Commande recue pour (R.cyclique): " + str(speed) + ", sens :" + dir)
+    
+def magnetoRotate(angle):
+    """
+    Rotate the satellite to the specified angle, via the magneto-couplers
+    """
+    Bx = float(state.readingsJSON[aliases.JSON_MAGNETICFIELD_X])
+    By = float(state.readingsJSON[aliases.JSON_MAGNETICFIELD_Y])
+    angB = round(math.atan2(By,Bx) * 180 / math.pi)
+    angTot = angB - angle
+    if(angTot > 360):
+        angTot -= 360
+    if(angTot < -360):
+        angTot += 360
+    
+    Ix = math.cos(angTot * math.pi / 180)
+    Iy = math.sin(angTot * math.pi / 180)
+
+    dirX = 0
+    dirY = 0
+    if (Ix > 0):
+        dirX = 0
+    else:
+        dirX = 1
+    
+    if (Iy > 0):
+        dirY = 0
+    else:
+        dirY = 1
+
+    iXdc = funcMap(abs(Ix*100), 100, 0, 150, 255)
+    iYdc = funcMap(abs(Iy*100), 100, 0, 150, 255)
+
+    # Defining current direction of magneto-coupler X
+    state.ioctlObj.getObject(Ioctl.KEY_DIR_X).value(dirX)
+    
+    # And its new duty cycle
+    state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(iXdc)
+
+    # Same for magneto-coupler Y
+    state.ioctlObj.getObject(Ioctl.KEY_DIR_Y).value(dirY)
+    state.ioctlObj.getObject(Ioctl.KEY_PWM_Y).duty_cycle(iYdc)
+
+    print("Commande recue pour : " + str(angle) + "°.")
+
+
+def funcMap(val,inMin,inMax,outMin,outMax):
+    return ((val - inMin) * (outMax - outMin) / (inMax - inMin)) + outMin  
+
 cbList = {"none":cbNone,"stopudp":cbStopUDP,"beginudp":cbBeginUDP,"state":cbState,"cameraon":cbCameraOn,
 "cameraoff":cbCameraOff,"loraon":cbLoRaOn,"loraoff":cbLoRaOff,"test":cbTest,"autotest":cbAutoTest,
-"gnsson":cbGNSSon,"gnssoff":cbGNSSoff,"gnsssave":cbGNSSsave}
+"gnsson":cbGNSSon,"gnssoff":cbGNSSoff,"gnsssave":cbGNSSsave,"epson":cbEPSon,"epsoff":cbEPSoff,
+"mplon":cbMPLon,"mploff":cbMPLoff,"tempon":cbTempOn,"tempoff":cbTempOff,"alton":cbAltOn,
+"altoff":cbAltOff,"preson":cbPresOn,"presoff":cbPresOff,"bnoon":cbBNOon,"bnooff":cbBNOoff,
+"euleron":cbEulerOn,"euleroff":cbEulerOff,"quaton":cbQuatOn,"quatoff":cbQuatOff,"vangon":cbVangOn,
+"vangoff":cbVangOff,"accon":cbAccOn,"accoff":cbAccOff,"magon":cbMagOn,"magoff":cbMagOff,
+"acclnon":cbAccLinOn,"acclnoff":cbAccLinOff,"gravon":cbGravOn,"gravoff":cbGravOff,"lumion":cbLumiOn,
+"lumioff":cbLumiOff,"locon":cbLocOn,"locoff":cbLocOff,"nmeaon":cbNMEAon,"nmeaoff":cbNMEAoff,
+"allon":cbAllOn,"alloff":cbAllOff,"lorastate":cbLoraState,"camstate":cbCameraState,"dmagon":cbDemagOn,
+"magt1":cbMagt1,"mcamoffagt2":cbMagt2,"magt3":cbMagt3,"magt4":cbMagt4,"stpmgt":cbStopMgt,"help":cbHelp,
+"camon":cbCamOn,"":cbCamOff}
+
+cbArgList = {"tcons":cbTCons,"rirot":cbRiRot,"mgrot":cbMgRot}
+
+cbSingleCharList = {"t":cbSingleT,"r":cbSingleR,"m":cbSingleM}
 
 eventList = {"events": consoleEvent, "events2": graphEvent,
              "events3": interfaceEvent, "events4": autotestEvent,
@@ -164,8 +761,8 @@ def startUDPServer(localIP):
     Start the UDP Server
     """
     global udpServ
-    udpServ = UdpServer(cbList)
-    udpServ.bind(localIP,udpPort)
+    udpServ = UdpServer(cbList,cbArgList,cbSingleCharList)
+    udpServ.bind(localIP,config.UDP_PORT)
 
 def initSystemHardware():
     """ 
@@ -174,6 +771,9 @@ def initSystemHardware():
     # Ioctl object for IO interfaces
     state.ioctlObj = Ioctl()
     setupGPIO()
+
+    # WiFi
+    state.wifiObj = wifi.WifiObject()
 
     # LoRa
     state.loraObj = LoRa.LoraObject()

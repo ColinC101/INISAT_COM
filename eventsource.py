@@ -36,11 +36,11 @@ class EventSource:
         messageBody = "id: "+str(id)+"\n"
         messageBody += "event: "+func_name+"\n"
         messageBody += "data: "+data+"\n\n"
-
         
-        try:
-            self.lnkSocket.send(bytes(messageBody, 'utf-8'))
-        except OSError as err:
-            # Handle connection reset
-            self.lnkSocket.close()
-            self.lnkSocket = None
+        if self.lnkSocket != None:
+            try:
+                self.lnkSocket.send(bytes(messageBody, 'utf-8'))
+            except OSError as err:
+                # Handle connection reset
+                self.lnkSocket.close()
+                self.lnkSocket = None

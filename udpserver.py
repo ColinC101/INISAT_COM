@@ -1,23 +1,33 @@
 from socket import AF_INET, IPPROTO_UDP, SOCK_DGRAM, socket
 import _thread
+import state
 
 class UdpServer:
+    """
+    This class implements the UDP server used for the INISAT
+    """
+
     # The size of receiving buffer
     RECEIVE_BUFFER_SZ = 32
 
-    """
-    This class implements the UDP server used for the INISAT
-    @arg cbList : dictionary where key is the UDP command name, and value is the 
-    associated callback function  
-    """
-    def __init__(self,cbList):
+    def __init__(self,cbList,cbArgList,cbSingleChar):
         """
-        Init the UDP server with the given port
+        Init the UdpServer
+        @arg cbList : dictionary where key is the UDP command name, and value is the 
+        associated callback function  
+        @arg cbArgList : dictionnary where key is the UDP command, and value the associated
+        callback function. 
+        Note: the callback function must accept one argument (a tuple) whose content will
+        be filled by the UDP command args.
+        @arg cbSingleChar : a dictionary where key is a single-char UDP command, and value the
+        associated callback which must accept one argument (the UDP command argument).
         """
         self.udpSocket = None
         self.lastRemoteAddr = ""
         self.lastRemotePort = 0
         self.cbList = cbList
+        self.cbArgList = cbArgList
+        self.cbSingleChar = cbSingleChar
 
     def bind(self,localIP,localPort):
         """
@@ -54,14 +64,49 @@ class UdpServer:
         print("Donnees : "+udpCommand)
 
         udpCommand = udpCommand.strip().lower()
+        
+        # The UDP response message
 
         if udpCommand in self.cbList:
-            # Execute the command
+            # Execute the command which has no argument
             responseMsg = self.cbList[udpCommand]()
-            # Send the response
-            self.sendTo(responseMsg,(self.lastRemoteAddr,self.lastRemotePort))
+            self.sendToLastRemote(responseMsg+"\r\n")
+        elif "+" in udpCommand:
+            # The given command seems to have args (separated by +)
+            commandArgs = udpCommand.split("+")
+            commandName = commandArgs[0]
+            if commandName in self.cbArgList:
+                # Execute the command which takes arguments
+                responseMsg = self.cbArgList[commandName](tuple(commandArgs[1:]))
+                self.sendToLastRemote(responseMsg+"\r\n")
+            else:
+                print("UDP command with args '"+commandName+"' is ignored (no associated callback)")
         else:
-            print("UDP command '"+udpCommand+"' is ignored (no associated callback)")            
+            # The given command seems to be a single-char command
+            if len(udpCommand)>0:
+                commandName = udpCommand[0]
+                commandArg = udpCommand[1:]
+                if commandName in self.cbSingleChar:
+                    responseMsg = self.cbSingleChar[commandName](commandArg)
+                    self.sendToLastRemote(responseMsg+"\r\n")
+                elif len(udpCommand) == 14:
+                    # Special command used to configure the console logs
+                    newConsConfig = list(udpCommand)
+
+                    for cfgValue in newConsConfig:
+                        if (cfgValue != "0" and cfgValue != "1"):
+                            self.sendToLastRemote("Commande ERROR !\r\n")
+                            return
+                            
+                    # Set the new console config
+                    state.consoleConfig = newConsConfig 
+                    self.sendToLastRemote("Config console recue ..\r\n")
+                else:
+                    self.sendToLastRemote("Commande ERROR !\r\n")
+                    print("UDP single char-command '"+udpCommand+"' is ignored (no associated callback)")      
+            else:
+                self.sendToLastRemote("Commande ERROR !\r\n")
+                print("UDP command '"+udpCommand+"' is ignored (empty command)")      
 
     def getLastRemote(self):
         """
@@ -76,3 +121,10 @@ class UdpServer:
         @arg remote((str,int)) : (the destination IP address,the destination UDP port)
         """
         self.udpSocket.sendto(bytes(msg,"utf-8"),remote)
+
+    def sendToLastRemote(self,msg):
+        """
+        Send a UDP packet to the last remote machine
+        @arg msg(str): the content of the UDP packet
+        """
+        self.udpSocket.sendto(bytes(msg,"utf-8"),(self.lastRemoteAddr,self.lastRemotePort))

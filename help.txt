@@ -1,0 +1,56 @@
+acclnOff :  Desactiver la supervision de l'Acceleration Lineaire
+acclnOn : Activer la supervision de l'Acceleration Lineaire
+accOff :  Desactiver la supervision de l'Acceleration
+accOn : Activer la supervision de l'Acceleration
+allOff :  Desactiver la supervision de l'ensemble des parametres
+allOn : Activer la supervision de  l'ensemble des parametres
+altOff :  Desactiver la supervision de l'Altitude
+altOn : Activer la supervision de l'Altitude
+autoTest :  Lancer un Autotest
+beginUdp : Enregistrement du client et autorisation d’envoie des trames de données
+bnoOff :  Desactiver la supervision de l'ensemble des parametres renvoyes par le BNO
+bnoOn : Activer la supervision de  l'ensemble des parametres renvoyes par le BNO
+camCapture :  Prendre une capture avec la Camera
+camOff :  Desactiver la Camera
+camOn : Activer la Camera
+camState :  Afficher l'etat de la Camera
+camStream : Demarrer un stream avec la Camera
+dmagOn : Lancer une demagnetisation des magnetocoupleurs
+epsOff :  Desactiver la supervision de l'ensemble des parametres de la carte EPS
+epsOn : Activer la supervision de  l'ensemble des parametres de la carte EPS
+eulerOff :  Desactiver la supervision de Vecteur d'Euler
+eulerOn : Activer la supervision de Vecteur d'Euler
+gravOff : Desactiver la supervision de Vecteur Gravite
+gravOn :  Activer la supervision de Vecteur Gravite
+help :  Afficher la liste des commandes existantes et leur explications
+locOff :  Activer la supervision de la localisation GNSS
+locOn : Desactiver la supervision de la localisation GNSS
+loraOff : Desactiver la liaison LORA
+loraOn :  Activer la liaison LORA
+loraState : Afficher l'etat de la liaison LORA
+lumiOff : Desactiver la supervision de la Luminance
+lumiOn :  Activer la supervision de la Luminance
+magOff :  Desactiver la supervision de Champs Magnetique
+magOn : Activer la supervision de Champs Magnetique
+magT1 : Lancer le test de rotation boussole par magnetocoupleurs N°1
+magT2 : Lancer le test de rotation boussole par magnetocoupleurs N°2
+magT3 : Lancer le test de rotation boussole par magnetocoupleurs N°3
+magT4 : Lancer le test de rotation boussole par magnetocoupleurs N°4
+mgRot+angle : Demarrer une rotation du satellite via les magnetocoupleurs, exp : mgRot+10, mgRot+-15 (en °)
+mplOff :  Desactiver la supervision de l'ensemble des parametres renvoyes par le MPL
+mplOn : Activer la supervision de  l'ensemble des parametres renvoyes par le MPL
+nmeaOff : Desactiver la supervision de la trame GNSS-NMEA
+nmeaOn :  Activer la supervision de la trame GNSS-NMEA
+presOff : Desactiver la supervision de la Pression
+presOn :  Activer la supervision de la Pression
+quatOff : Desactiver la supervision de la quaternion
+quatOn :  Activer la supervision de la quaternion
+riRot+sens+vitesse :  Demarrer une rotation de la roue a inertie, exp : riRot+a+40  (en %)
+tCons+periode : Modifier de periode de reception des donnees sur la liaison UDP, exp tCons+10  (en secondes)
+stopUdp  : Fin de la communication UDP avec le satellite
+stpmgT : Arrêter le test magnetocoupleurs en cours
+tempOff : Desactiver la supervision de la Tempetarure
+tempOn :  Activer la supervision de la Tempetarure
+vangOff : Desactiver la supervision de la Vitesse Angulaire
+vangOn :  Activer la supervision de la Vitesse Angulaire
+Remarque : la saisie des commandes n'est pas sensible a la casse.
