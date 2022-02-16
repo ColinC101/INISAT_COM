@@ -211,3 +211,4 @@ CHART_LUMINANCE = 'l'
 ############  TEST MAGNETO ############
 #######################################
 MAGNETO_TEST_FIN = "B"
+MAGNETO_DEMAG_FIN = "A"

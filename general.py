@@ -544,7 +544,7 @@ def cbOuvPage():
     state.affGraph_ex = 0
     print("Valeurs Aff initialisées")
 
-    uart = state.ioctlObj.getObject(ioctl.KEY_UART_OBC)
+    uart = state.ioctlObj.getObject(Ioctl.KEY_UART_OBC)
     initSeq = ['B', 'I', 'H', 'J', 'L', 'F', 'C', 'D', 'E', 'Z']
     for i in initSeq:
         uart.write(i)
@@ -617,7 +617,7 @@ def cbRiRot(args):
     if (angularSpeedRatio<0 or angularSpeedRatio >100):
         return "Veuillez choisir une valeur entre 0 et 100 % !"
 
-    unitAngularSpeed = if rotationDir == -1 0 else angularSpeedRatio / 100
+    unitAngularSpeed = 0 if (rotationDir == -1) else angularSpeedRatio / 100
     setInertiaWheelSpeed(unitAngularSpeed,rotationDir)
 
     return "Config rirot+"+args[0]+"+"+args[1]+" recue .."
@@ -648,7 +648,7 @@ def cbConsConfig(args):
     """
     state.consoleConfig = list(args[0])
     print("Config console mise à jour: " + args[0])
-    return "Config console mise à jour: " + args[0]"
+    return "Config console mise à jour: " + args[0]
 
 def cbGraph1(args):
     """
@@ -656,7 +656,7 @@ def cbGraph1(args):
     """
     state.chartsConfig[0] = args[0]
     print("Config graph1 mise à jour: " + args[0])
-    return "Config graph1 mise à jour: " + args[0]"
+    return "Config graph1 mise à jour: " + args[0]
 
 
 def cbGraph2(args):
@@ -665,7 +665,7 @@ def cbGraph2(args):
     """
     state.chartsConfig[1] = args[0]
     print("Config graph2 mise à jour: " + args[0])
-    return "Config graph2 mise à jour: " + args[0]"
+    return "Config graph2 mise à jour: " + args[0]
 
 
 def cbGraph3(args):
@@ -674,7 +674,7 @@ def cbGraph3(args):
     """
     state.chartsConfig[2] = args[0]
     print("Config graph3 mise à jour: " + args[0])
-    return "Config graph3 mise à jour: " + args[0]"
+    return "Config graph3 mise à jour: " + args[0]
 
 
 def cbGraph4(args):
@@ -683,7 +683,7 @@ def cbGraph4(args):
     """
     state.chartsConfig[3] = args[0]
     print("Config graph4 mise à jour: " + args[0])
-    return "Config graph4 mise à jour: " + args[0]"
+    return "Config graph4 mise à jour: " + args[0]
 
 
 def cbGraph5(args):
@@ -692,7 +692,7 @@ def cbGraph5(args):
     """
     state.chartsConfig[4] = args[0]
     print("Config graph5 mise à jour: " + args[0])
-    return "Config graph5 mise à jour: " + args[0]"
+    return "Config graph5 mise à jour: " + args[0]
 
 
 def cbGraph6(args):
@@ -701,7 +701,7 @@ def cbGraph6(args):
     """
     state.chartsConfig[5] = args[0]
     print("Config graph6 mise à jour: " + args[0])
-    return "Config graph6 mise à jour: " + args[0]"
+    return "Config graph6 mise à jour: " + args[0]
 
 
 ## END - UDP COMMANDS WITH ARGS ##
@@ -881,7 +881,7 @@ cbList = {"none":cbNone,"stopudp":cbStopUDP,"beginudp":cbBeginUDP,"state":cbStat
 "startgnss":cbGNSSon, "stopgnss":cbGNSSoff, "savegnss":cbGNSSsave, "user":cbUser }
 
 cbArgList = {"tcons":cbTCons, "t_cons":cbTCons, "t_graph":cbTGraph,
-"rirot":cbRiRot,"mgrot":cbMgRot, "cons_config":cbConsConfig
+"rirot":cbRiRot,"mgrot":cbMgRot, "cons_config":cbConsConfig,
 "configGraph1": cbGraph1,"configGraph2": cbGraph2, "configGraph3": cbGraph3,
 "configGraph4": cbGraph4,"configGraph5": cbGraph5, "configGraph6": cbGraph6}
 
@@ -1121,3 +1121,63 @@ def blinkLoRaLED():
         # Update LoRa led status
         state.ioctlObj.getObject(Ioctl.KEY_LORA_LED).value(newLedStatus)
         state.loraLastBlink = utime.ticks_ms()
+
+def demag():
+    """
+    Degaussing function
+    """
+    # Step
+    t = 40
+    
+    # Params for the loop of each phase
+    phasesParams = [{"start":255,"end":135,"step":-1,"dir":0},
+                   {"start":175,"end":255,"step":1,"dir":0},
+                   {"start":215,"end":135,"step":-1,"dir":1},
+                   {"start":175,"end":215,"step":1,"dir":1}]
+
+    # Magneto-couplers to degauss IOs are stored here
+    magnetoSys = [{"dir":state.ioctlObj.getObject(Ioctl.KEY_DIR_X),"pwm":state.ioctlObj.getObject(Ioctl.KEY_PWM_X)},
+                  {"dir":state.ioctlObj.getObject(Ioctl.KEY_DIR_Y),"pwm":state.ioctlObj.getObject(Ioctl.KEY_PWM_Y)}]
+
+    p = 20
+
+    for magnetoDegauss in magnetoSys:
+        n = 20
+        f = 1
+        while n > 0:
+            for crrPhase in phasesParams:
+                magnetoDegauss["dir"].value(crrPhase["dir"])
+                rangeMinMax = 0
+                crrStep = 0
+
+                if crrPhase["step"] == 1:
+                    # Increasing loop
+                    rangeMinMax = (crrPhase["end"] + 1)
+                    crrStep = t
+                else: 
+                    # Decreasing loop
+                    rangeMinMax =  (crrPhase["end"] - 1)
+                    crrStep = -t
+
+                for j in range(crrPhase["start"],rangeMinMax,crrStep):
+                    magnetoDegauss["pwm"].duty_cycle((j * f) / 255)
+                    utime.sleep_ms(p)
+                
+            n = n - 1
+            f = f - 0.1
+
+    utime.sleep_ms(100)
+    state.deMag = 0
+    utime.sleep_ms(200)
+    demagEvent.send("fct_fin", aliases.MAGNETO_DEMAG_FIN, utime.ticks_ms())
+    utime.sleep_ms(200)
+
+    state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1.0)
+    
+    utime.sleep_ms(100)
+    state.ioctlObj.getObject(Ioctl.KEY_PWM_Y).duty_cycle(1.0)
+    utime.sleep_ms(100)
+    demagEvent.send("fct_fin", aliases.MAGNETO_DEMAG_FIN, utime.ticks_ms())
+    utime.sleep_ms(100)
+
+    udpServ.sendToLastRemote(" .. Demagnetisation Finie\r\n")
