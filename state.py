@@ -16,6 +16,9 @@ def init():
     # Console updating interval (ms)
     consoleInterval = 5000
 
+    # Graph updating interval (ms)
+    graphInterval = 5000
+
     # Enable / Disable GNSS
     modeGnss = 0
 
@@ -25,7 +28,7 @@ def init():
     # Enable / Disable UDP com
     udpCom = False
 
-    # Active magneto-coupler test (when set to 1)
+    # Active magneto-coupler test (when set to 1,2,3 or 4)
     testMag = 0
 
     # Activate degaussing (when set to 1)
@@ -60,4 +63,3 @@ def init():
     affGraph_ex = False
     affInterface_ex = False
     affLora_ex = False
-
