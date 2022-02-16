@@ -8,7 +8,6 @@ def init():
 
     # Console configuration
     consoleConfig = aliases.CONSOLE_CONFIG_DISABLED
-    consFlag = False
 
     # Auto test status
     autoTesting = 0
