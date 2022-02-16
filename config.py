@@ -72,6 +72,9 @@ wifiAntenna = WLAN.INT_ANT
 # WiFi power in dBm
 wifiMaxTxPower = 19.5 
 
+# Blink period for WiFi LED 
+WIFI_LED_BLINK_CYCLE = 3000
+
 ################################################################
 #######################  LoRa CONFIG     #######################
 ################################################################
@@ -96,7 +99,30 @@ loraAdaptativeDataRate = 0
 loraTxRetries = 0
 loraDeviceClass = 0
 
+# Blink period for LoRa LED
+LORA_LED_BLINK_CYCLE = 3000
+
 ################################################################
 #######################  UDP SERVER CONFIG   ###################
 ################################################################
 UDP_PORT = 9991
+
+
+################################################################
+#######################  SYSTEM CONFIG   #######################
+################################################################
+
+# OBC interval for requests
+OBC_INTERVAL = 1000
+
+# 5min30, time window for connected user (with '/ouvPage' or '/user' request)
+USER_SIGNALING_INTERVAL = 330000 
+
+# LoRa interval for requests
+LORA_INTERVAL = 90000
+
+# Interval for interface requests
+INTERFACE_INTERVAL = 60000
+
+# Interval for GNSS requests
+GNSS_INTERVAL = 2000

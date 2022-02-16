@@ -769,6 +769,17 @@ def cbSingleM(arg):
 ## END - SINGLE-CHAR UDP COMMANDS ##
 #### END - UDP COMMANDS #####
 
+def gnssSaveFile(newLine):
+    """
+    Saves the GNSS data in a text file
+    """
+    # TODO: We may need to reset the file at the first execution -> Use a flag ?
+    try:
+        with open("web/Trajectoire_GNSS.txt", 'a') as file:
+            file.write(newLine)
+    except OSError:
+        print("Echec lors de l'ouverture du fichier Trajectoire_GNSS pour la sauvegarde des données.")
+
 def gnssTransmitUDP():
     """
     Transmit GNSS data stored in a file, over UDP
@@ -1053,25 +1064,29 @@ def testMagneto(tstIdx):
                 state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(Sx)
                 state.ioctlObj.getObject(Ioctl.KEY_PWM_Y).duty_cycle(Sy)
                 utime.sleep_ms(selectedP)
-    utime.sleep_ms(100)
 
-    # Event source fin --
-    # UDP fin
+    utime.sleep_ms(100)
+    demagEvent.send("fct_fin", aliases.MAGNETO_TEST_FIN, utime.ticks_ms())
+    
     utime.sleep_ms(100)
     state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1.0)
+    
     utime.sleep_ms(100)
     state.ioctlObj.getObject(Ioctl.KEY_PWM_Y).duty_cycle(1.0)
+    
+    # Re-send the event to make sure it has been received by the browser
+    utime.sleep_ms(200)
+    demagEvent.send("fct_fin", aliases.MAGNETO_TEST_FIN, utime.ticks_ms())
+    
     utime.sleep_ms(100)
+    demagEvent.send("fct_fin", aliases.MAGNETO_TEST_FIN, utime.ticks_ms())
+    
+    utime.sleep_ms(100)
+    udpServ.sendToLastRemote("Test fini.\r\n")
 
     print("Stop test magneto-coupler "+str(tstIdx))
-
-
-    # Send event5 fin
-    utime.sleep_ms(100)
+    
     return "Test du magnéto-coupleur " + str(tstIdx) + " terminé !"
-
-
-
 
 def stopTestMag():
     """
@@ -1080,3 +1095,29 @@ def stopTestMag():
     state.testMag = 0
     demagEvent.send("fct_fin", "B", utime.ticks_ms())
     return "Arrêt du test ..."
+
+def blinkWiFiLED():
+    """
+    Blink the WiFi LED at period set in config file (WIFI_LED_BLINK_CYCLE).
+    Note: the period may be longer if this function is called too late
+    """
+    if (utime.ticks_ms() - state.wifiLastBlink) > config.WIFI_LED_BLINK_CYCLE:
+        # Invert led status
+        newLedStatus = int(not state.ioctlObj.getObject(Ioctl.KEY_WIFI_LED).value())
+        
+        # Update WiFi led status
+        state.ioctlObj.getObject(Ioctl.KEY_WIFI_LED).value(newLedStatus)
+        state.wifiLastBlink = utime.ticks_ms()
+
+def blinkLoRaLED():
+    """
+    Blink the LoRa LED at period set in config file (LORA_LED_BLINK_CYCLE).
+    Note: the period may be longer if this function is called too late
+    """
+    if (utime.ticks_ms() - state.loraLastBlink) > config.LORA_LED_BLINK_CYCLE:
+        # Invert led status
+        newLedStatus = int(not state.ioctlObj.getObject(Ioctl.KEY_LORA_LED).value())
+        
+        # Update LoRa led status
+        state.ioctlObj.getObject(Ioctl.KEY_LORA_LED).value(newLedStatus)
+        state.loraLastBlink = utime.ticks_ms()

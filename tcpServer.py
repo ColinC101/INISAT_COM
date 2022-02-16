@@ -83,8 +83,7 @@ class TcpServer:
             if requestContent.lower() in self.eventList:
                 self.eventList[requestContent.lower()].bind(clientSocket)
                 http_header = b"HTTP/1.1 200 OK\r\nCache-Control: no-cache\r\nContent-Type: text/event-stream\r\n\r\n"
-                http_body = requestContent + " bounded."
-                sentBytes = clientSocket.send(http_header + http_body)
+                sentBytes = clientSocket.send(http_header)
                 return sentBytes
 
             #If command, return command response

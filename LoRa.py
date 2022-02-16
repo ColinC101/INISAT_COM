@@ -12,8 +12,16 @@ For this implementation, we are focusing on LoPy to Lopy communication,
 in simple LoRa mode (see https://docs.pycom.io/tutorials/networks/lora/module-module/)
 """
 
-class LoraObject:        
+class LoraObject:
+
+    ####################################################
+    #################  INITIALIZATION  #################
+    ####################################################
+
     def __init__(self):
+        """
+        Constructor for the object.
+        """
         # Status of th LoRa link. (0 = disabled / 1 = enabled)
         self.__loraStatus__ = False
         # Getting LoRa object
@@ -33,6 +41,7 @@ class LoraObject:
                 public=config.loraPublicSync)
         self.__loraStatus__ = True
         print("LoRa initialized")
+
 
     ######################################################
     #################  CONNEXION STATUS  #################
@@ -61,24 +70,25 @@ class LoraObject:
         self.__loraStatus__ = False
 
 
-    def sendReadings(self):
+    ######################################################
+    #################  COMMUNICATION  #################
+    ######################################################
+
+    def sendReadings(self, data):
         """
         Sends the collected data via the LoRa link.
+        Parameter 'data' must be a string
         """
         # Creating communication Socket
         s = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
-        s.setblocking(False)
-        # TODO: Ajouter les envois des données
-            # (quand les données seront ajoutées)
+        s.send(data)
         s.close()
 
 
 
-
-
-######################################################
-##############  TESTS DE FONCTIONNEMENT ##############
-######################################################
+#################################################
+##############  TESTING FUNCTIONS  ##############
+#################################################
 
 
 def testLoopSend():
@@ -88,10 +98,9 @@ def testLoopSend():
     """
     # Creating communication Socket
     s = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
-    s.setblocking(False)
     i = 0
     #while True:
-    while i<10:
+    while i<100:
         s.send('Ping')
         print('Ping {}'.format(i))
         i += 1
@@ -108,7 +117,7 @@ def testLoopReceive():
     s.setblocking(False)
     i = 0
     #while True:
-    while i<10:
+    while i<100:
         if s.recv(64) == b'Ping':
             s.send('Pong')
             print('Pong {}'.format(i))
