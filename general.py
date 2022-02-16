@@ -14,6 +14,8 @@ import state
 import tcpServer
 import aliases
 
+
+# Events for asynchronous communication with the web interface
 consoleEvent = EventSource("consoleEvent")
 graphEvent = EventSource("graphEvent")
 interfaceEvent = EventSource("interfaceEvent")
@@ -26,11 +28,81 @@ udpServ = None
 # Mapping between rotation direction command and pin value
 rotationDirMap = {"h":0,"a":1}
 
+
+############################################
+########   SYSTEM INITIALIZAITONS   ########
+############################################
+
+
+def initSystemHardware():
+    """ 
+    Init function for IOs and LoRa
+    """
+    # Ioctl object for IO interfaces
+    state.ioctlObj = Ioctl()
+    setupGPIO()
+
+    # WiFi
+    state.wifiObj = wifi.WifiObject()
+
+    # LoRa
+    state.loraObj = LoRa.LoraObject()
+
+
+def setupGPIO():
+    """
+    Init function used to setup the GPIOs of the board. In particular, it configures output pins
+    for leds (status of the board), PWM + direction output pins(inertia wheel),
+    the UART connection with OBC, and the control pin for the PyCam.
+    """
+    utime.sleep_ms(100)
+
+    # PWM init
+    pwm = PWM(0, frequency=5000)
+    pwmX_chan = pwm.channel(0, pin=config.PIN_PWM_X, duty_cycle=1.0)
+    pwmY_chan = pwm.channel(1, pin=config.PIN_PWM_Y, duty_cycle=1.0)
+
+    # UART OBC init
+    uartOBC = UART(1, baudrate=config.UART_OBC_BAUD, pins=(config.PIN_UART_OBC_TX,config.PIN_UART_OBC_RX))
+    uartOBC.init(config.UART_OBC_BAUD, bits=8, parity=None, stop=1)
+
+    # LED output pins init
+    loraLED = Pin(config.PIN_LORA_LED, mode=Pin.OUT)
+    wifiLED = Pin(config.PIN_WIFI_LED, mode=Pin.OUT)
+
+    # Magneto-couplers direction output pins init
+    dirX = Pin(config.PIN_DIR_X, mode=Pin.OUT)
+    dirY = Pin(config.PIN_DIR_Y, mode=Pin.OUT)
+
+    # Camera control pin init
+    cameraControl = Pin(config.PIN_CAM_CONTROL, mode=Pin.OUT)
+
+    # Set the objects in Ioctl
+    state.ioctlObj.setObject(Ioctl.KEY_PWM_X,pwmX_chan)
+    state.ioctlObj.setObject(Ioctl.KEY_PWM_Y,pwmY_chan)
+    state.ioctlObj.setObject(Ioctl.KEY_UART_OBC,uartOBC)
+    state.ioctlObj.setObject(Ioctl.KEY_LORA_LED,loraLED)
+    state.ioctlObj.setObject(Ioctl.KEY_WIFI_LED,wifiLED)
+    state.ioctlObj.setObject(Ioctl.KEY_CAM_CONTROL,cameraControl)
+    state.ioctlObj.setObject(Ioctl.KEY_DIR_X,dirX)
+    state.ioctlObj.setObject(Ioctl.KEY_DIR_Y,dirY)
+
+    # Default state
+    state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1.0)
+    state.ioctlObj.getObject(Ioctl.KEY_PWM_Y).duty_cycle(1.0)
+    state.ioctlObj.getObject(Ioctl.KEY_LORA_LED).value(0)
+    state.ioctlObj.getObject(Ioctl.KEY_WIFI_LED).value(0)
+    state.ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value(0)
+
+    utime.sleep_ms(100)
+
+
 def initWiFi():
     """
     Init WiFi
     """
     state.wifiObj.initWifi()
+
 
 def initLoRa():
     """
@@ -38,11 +110,13 @@ def initLoRa():
     """
     state.loraObj.initLoRa()
 
+
 def getState():
     """
     Return a string representing the current state of the server
     """
     return "S" + str(state.camStatus) + "#" + str(int(state.loraObj.getLoraStatus()))+"#Capteurs OK#"+str(state.consoleInterval)+"#"+str(state.modeGnss)+"@"
+
 
 def uartFlush():
     """
@@ -50,9 +124,14 @@ def uartFlush():
     """
     state.ioctlObj.getObject(Ioctl.KEY_UART_OBC).wait_tx_done(1000)
 
-#### BEGIN - UDP COMMANDS ####
 
-## BEGIN - UDP INTERFACE COMMANDS ##
+
+############################################
+#############   UDP COMMANDS   #############
+############################################
+
+########   UDP INTERFACE COMMANDS   ########
+
 def cbNone():
     """
     Disable UDP communication
@@ -79,9 +158,10 @@ def cbState():
     Send the current state of the server, over UDP
     """
     return getState()
-## END - UDP INTERFACE COMMAND ##
 
-## BEGIN - ARTH INERFACE COMMAND ##
+
+########   ARTH INTERFACE COMMANDS   ########
+
 def cbCameraOn():
     """
     Turn on the camera
@@ -172,9 +252,8 @@ def cbGNSSsave():
     gnssTransmitUDP()
     return getState()
 
-## END - ARTH INERFACE COMMAND ##
 
-## BEGIN - RAW UDP COMMANDS ##
+########   RAW UDP COMMANDS   ########
 
 def cbEPSon():
     """
@@ -459,6 +538,7 @@ def cbMagt1():
     """
     Start test 1 for magneto-coupler
     """
+    # TODO: Commande désactivée ppour l'instant (de même pour les suivantes)
     # state.testMag = 1
     return "Config magt1 recue .. COMMANDE DESACTIVEE POUR L'INSTANT .."
 
@@ -521,9 +601,8 @@ def cbCamOff():
     return "Config camoff recue .."
 
 
-## END - RAW UDP COMMANDS ##
+########   UDP COMMANDS WITH ARGS   ########
 
-## BEGIN - UDP COMMANDS WITH ARGS ##
 def cbTCons(args):
     """
     Change the console updating interval
@@ -585,9 +664,9 @@ def cbMgRot(args):
     magnetoRotate(rotationAngle)
     return "Config mgrot+"+args[0]+" recue .."
 
-## END - UDP COMMANDS WITH ARGS ##
 
-## BEGIN - SINGLE-CHAR UDP COMMANDS ##
+########   SINGLE-CHAR UDP COMMANDS   ########
+
 def cbSingleT(arg):
     """
     ARTH command used to control the console updating interval
@@ -603,7 +682,6 @@ def cbSingleT(arg):
     
     return "Veuillez choisir une periode entre 5 et 3600 secondes !"
 
-    
 
 def cbSingleR(arg):
     """
@@ -629,6 +707,7 @@ def cbSingleR(arg):
 
     return getState()
 
+
 def cbSingleM(arg):
     """
     ARTH command used to initiate a rotation of the satellite via the magneto-couplers
@@ -646,8 +725,11 @@ def cbSingleM(arg):
 
     return getState()
 
-## END - SINGLE-CHAR UDP COMMANDS ##
-#### END - UDP COMMANDS #####
+
+
+############################################
+##########   GNSS FILE HANDLING   ##########
+############################################
 
 def gnssSaveFile(newLine):
     """
@@ -681,6 +763,13 @@ def gnssTransmitUDP():
     except OSError:
         print("Echec lors de l'ouverture du fichier Trajectoire_GNSS pour transmission sur la liaison UDP")
 
+
+
+############################################
+##########   HARDWARE HANDLING   ###########
+############################################
+
+
 def setInertiaWheelSpeed(speed,dir):
     """
     Set the inertia wheel speed to the given value
@@ -698,7 +787,8 @@ def setInertiaWheelSpeed(speed,dir):
     state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1-speed)
     
     print("Commande recue pour (R.cyclique): " + str(speed) + ", sens :" + dir)
-    
+
+
 def magnetoRotate(angle):
     """
     Rotate the satellite to the specified angle, via the magneto-couplers
@@ -746,147 +836,6 @@ def magnetoRotate(angle):
 def funcMap(val,inMin,inMax,outMin,outMax):
     return ((val - inMin) * (outMax - outMin) / (inMax - inMin)) + outMin  
 
-cbList = {"none":cbNone,"stopudp":cbStopUDP,"beginudp":cbBeginUDP,"state":cbState,"cameraon":cbCameraOn,
-"cameraoff":cbCameraOff,"loraon":cbLoRaOn,"loraoff":cbLoRaOff,"test":cbTest,"autotest":cbAutoTest,
-"gnsson":cbGNSSon,"gnssoff":cbGNSSoff,"gnsssave":cbGNSSsave,"epson":cbEPSon,"epsoff":cbEPSoff,
-"mplon":cbMPLon,"mploff":cbMPLoff,"tempon":cbTempOn,"tempoff":cbTempOff,"alton":cbAltOn,
-"altoff":cbAltOff,"preson":cbPresOn,"presoff":cbPresOff,"bnoon":cbBNOon,"bnooff":cbBNOoff,
-"euleron":cbEulerOn,"euleroff":cbEulerOff,"quaton":cbQuatOn,"quatoff":cbQuatOff,"vangon":cbVangOn,
-"vangoff":cbVangOff,"accon":cbAccOn,"accoff":cbAccOff,"magon":cbMagOn,"magoff":cbMagOff,
-"acclnon":cbAccLinOn,"acclnoff":cbAccLinOff,"gravon":cbGravOn,"gravoff":cbGravOff,"lumion":cbLumiOn,
-"lumioff":cbLumiOff,"locon":cbLocOn,"locoff":cbLocOff,"nmeaon":cbNMEAon,"nmeaoff":cbNMEAoff,
-"allon":cbAllOn,"alloff":cbAllOff,"lorastate":cbLoraState,"camstate":cbCameraState,"dmagon":cbDemagOn,
-"magt1":cbMagt1,"mcamoffagt2":cbMagt2,"magt3":cbMagt3,"magt4":cbMagt4,"stpmgt":cbStopMgt,"help":cbHelp,
-"camon":cbCamOn,"camoff":cbCamOff}
-
-cbArgList = {"tcons":cbTCons,"rirot":cbRiRot,"mgrot":cbMgRot}
-
-cbSingleCharList = {"t":cbSingleT,"r":cbSingleR,"m":cbSingleM}
-
-eventList = {"events": consoleEvent, "events2": graphEvent,
-             "events3": interfaceEvent, "events4": autotestEvent,
-             "events5": demagEvent}
-
-def startUDPServer(localIP):
-    """
-    Start the UDP Server
-    """
-    global udpServ
-    udpServ = UdpServer(cbList,cbArgList,cbSingleCharList)
-    udpServ.bind(localIP,config.UDP_PORT)
-
-def initSystemHardware():
-    """ 
-    Init function for IOs and LoRa
-    """
-    # Ioctl object for IO interfaces
-    state.ioctlObj = Ioctl()
-    setupGPIO()
-
-    # WiFi
-    state.wifiObj = wifi.WifiObject()
-
-    # LoRa
-    state.loraObj = LoRa.LoraObject()
- 
-def startTCPServer():
-    """
-    Start the TCP Server
-    """
-    global tcpServ
-    tcpServ = tcpServer.TcpServer(cbList, eventList)
-    tcpServ.bind(config.localIP, config.tcpPort)
-    tcpServ.listen()
-
-def setupGPIO():
-    """
-    Init function used to setup the GPIOs of the board. In particular, it configures output pins
-    for leds (status of the board), PWM + direction output pins(inertia wheel),
-    the UART connection with OBC, and the control pin for the PyCam.
-    """
-    utime.sleep_ms(100)
-
-    # PWM init
-    pwm = PWM(0, frequency=5000)
-    pwmX_chan = pwm.channel(0, pin=config.PIN_PWM_X, duty_cycle=1.0)
-    pwmY_chan = pwm.channel(1, pin=config.PIN_PWM_Y, duty_cycle=1.0)
-
-    # UART OBC init
-    uartOBC = UART(1, baudrate=config.UART_OBC_BAUD, pins=(config.PIN_UART_OBC_TX,config.PIN_UART_OBC_RX))
-    uartOBC.init(config.UART_OBC_BAUD, bits=8, parity=None, stop=1)
-
-    # LED output pins init
-    loraLED = Pin(config.PIN_LORA_LED, mode=Pin.OUT)
-    wifiLED = Pin(config.PIN_WIFI_LED, mode=Pin.OUT)
-
-    # Magneto-couplers direction output pins init
-    dirX = Pin(config.PIN_DIR_X, mode=Pin.OUT)
-    dirY = Pin(config.PIN_DIR_Y, mode=Pin.OUT)
-
-    # Camera control pin init
-    cameraControl = Pin(config.PIN_CAM_CONTROL, mode=Pin.OUT)
-
-    # Set the objects in Ioctl
-    state.ioctlObj.setObject(Ioctl.KEY_PWM_X,pwmX_chan)
-    state.ioctlObj.setObject(Ioctl.KEY_PWM_Y,pwmY_chan)
-    state.ioctlObj.setObject(Ioctl.KEY_UART_OBC,uartOBC)
-    state.ioctlObj.setObject(Ioctl.KEY_LORA_LED,loraLED)
-    state.ioctlObj.setObject(Ioctl.KEY_WIFI_LED,wifiLED)
-    state.ioctlObj.setObject(Ioctl.KEY_CAM_CONTROL,cameraControl)
-    state.ioctlObj.setObject(Ioctl.KEY_DIR_X,dirX)
-    state.ioctlObj.setObject(Ioctl.KEY_DIR_Y,dirY)
-
-    # Default state
-    state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1.0)
-    state.ioctlObj.getObject(Ioctl.KEY_PWM_Y).duty_cycle(1.0)
-    state.ioctlObj.getObject(Ioctl.KEY_LORA_LED).value(0)
-    state.ioctlObj.getObject(Ioctl.KEY_WIFI_LED).value(0)
-    state.ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value(0)
-
-    utime.sleep_ms(100)
-
-"""def eventHandler(event, socket):
-    eventList = [("events", consoleEvent), ("events2", graphEvent),
-                 ("events3", interfaceEvent), ("events4", autotestEvent),
-                 ("events5", demagEvent)]
-    for i in eventList:
-        if i[0] == event:
-            i[1].bind(socket)
-            return (1, "Event " + event + " bounded")
-    return (-1, "Event Not Found")
-
-def nullCommand(paramStruct):
-    return "No implementation for this command"
-
-def commandHandler(command):
-    commandList = [("LoraON", toggleLora, (True)), ("LoraOFF", toggleLora, (False)),
-                   ("camON", nullCommand, ()), ("camOFF", nullCommand, ()),
-                   ("t_console", nullCommand, ()), ("t_graph", nullCommand, ()),
-                   ("tst1", testMagneto, (1,)), ("tst2", testMagneto, (2,)), ("tst3", testMagneto, (3,)),
-                   ("tst4", testMagneto, (4,)), ("tststp", stopTestMag, ()),
-                   ("ang_couple", nullCommand, ()), ("demag", nullCommand, ()),  ("roue", nullCommand, ()),
-                   ("startgnss", nullCommand, ()), ("stopgnss", nullCommand, ()), ("savegnss", nullCommand, ()),
-                   ("ouvPage", nullCommand, ()),  ("cons_config", nullCommand, ()),
-                   ("autoTest", nullCommand, ()), ("user", nullCommand, ()),
-                   ("configGraph1", nullCommand, ()), ("configGraph2", nullCommand, ()), ("configGraph3", nullCommand, ()),
-                   ("configGraph4", nullCommand, ()), ("configGraph5", nullCommand, ()), ("configGraph6", nullCommand, ())]
-    for i in commandList:
-        if i[0] == command:
-            return (1, i[1](i[2]))
-    return (-1, "Command Not Found")"""
-
-def toggleLora(paramStruct):
-    loraActive = state.loraObj.getLoraStatus()
-    if (paramStruct == () or paramStruct[0]) and not loraActive:
-        state.loraObj.enableLora()
-        return "Liaison LoRa activée"
-    elif (paramStruct == () or not paramStruct[0]) and loraActive:
-        state.loraObj.disableLora()
-        return "Liaison LoRa désactivée"
-    elif paramStruct[0] and loraActive:
-        return "Liaison LoRa déjà active !"
-    elif not paramStruct[0] and not loraActive:
-        return "Liaison LoRa déjà éteinte !"
 
 def testMagneto(paramStruct):
     """
@@ -972,6 +921,78 @@ def stopTestMag(paramStruct):
     state.testMag = 0
     demagEvent.send("fct_fin", "B", utime.ticks_ms())
     return "Arrêt du test ..."
+
+
+
+############################################
+##########   COMMANDS HANDLING   ###########
+############################################
+
+
+cbList = {"none":cbNone,"stopudp":cbStopUDP,"beginudp":cbBeginUDP,"state":cbState,"cameraon":cbCameraOn,
+"cameraoff":cbCameraOff,"loraon":cbLoRaOn,"loraoff":cbLoRaOff,"test":cbTest,"autotest":cbAutoTest,
+"gnsson":cbGNSSon,"gnssoff":cbGNSSoff,"gnsssave":cbGNSSsave,"epson":cbEPSon,"epsoff":cbEPSoff,
+"mplon":cbMPLon,"mploff":cbMPLoff,"tempon":cbTempOn,"tempoff":cbTempOff,"alton":cbAltOn,
+"altoff":cbAltOff,"preson":cbPresOn,"presoff":cbPresOff,"bnoon":cbBNOon,"bnooff":cbBNOoff,
+"euleron":cbEulerOn,"euleroff":cbEulerOff,"quaton":cbQuatOn,"quatoff":cbQuatOff,"vangon":cbVangOn,
+"vangoff":cbVangOff,"accon":cbAccOn,"accoff":cbAccOff,"magon":cbMagOn,"magoff":cbMagOff,
+"acclnon":cbAccLinOn,"acclnoff":cbAccLinOff,"gravon":cbGravOn,"gravoff":cbGravOff,"lumion":cbLumiOn,
+"lumioff":cbLumiOff,"locon":cbLocOn,"locoff":cbLocOff,"nmeaon":cbNMEAon,"nmeaoff":cbNMEAoff,
+"allon":cbAllOn,"alloff":cbAllOff,"lorastate":cbLoraState,"camstate":cbCameraState,"dmagon":cbDemagOn,
+"magt1":cbMagt1,"mcamoffagt2":cbMagt2,"magt3":cbMagt3,"magt4":cbMagt4,"stpmgt":cbStopMgt,"help":cbHelp,
+"camon":cbCamOn,"camoff":cbCamOff}
+
+cbArgList = {"tcons":cbTCons,"rirot":cbRiRot,"mgrot":cbMgRot}
+
+cbSingleCharList = {"t":cbSingleT,"r":cbSingleR,"m":cbSingleM}
+
+eventList = {"events": consoleEvent, "events2": graphEvent,
+             "events3": interfaceEvent, "events4": autotestEvent,
+             "events5": demagEvent}
+
+
+
+############################################
+#########   COMMUNICATION INIT   ###########
+############################################
+
+
+def startUDPServer(localIP):
+    """
+    Start the UDP Server
+    """
+    global udpServ
+    udpServ = UdpServer(cbList,cbArgList,cbSingleCharList)
+    udpServ.bind(localIP,config.UDP_PORT)
+
+ 
+def startTCPServer():
+    """
+    Start the TCP Server
+    """
+    global tcpServ
+    tcpServ = tcpServer.TcpServer(cbList, eventList)
+    tcpServ.bind(config.localIP, config.tcpPort)
+    tcpServ.listen()
+
+
+def toggleLora(paramStruct):
+    loraActive = state.loraObj.getLoraStatus()
+    if (paramStruct == () or paramStruct[0]) and not loraActive:
+        state.loraObj.enableLora()
+        return "Liaison LoRa activée"
+    elif (paramStruct == () or not paramStruct[0]) and loraActive:
+        state.loraObj.disableLora()
+        return "Liaison LoRa désactivée"
+    elif paramStruct[0] and loraActive:
+        return "Liaison LoRa déjà active !"
+    elif not paramStruct[0] and not loraActive:
+        return "Liaison LoRa déjà éteinte !"
+
+
+############################################
+#############   LED CONTROLS   #############
+############################################
 
 def blinkWiFiLED():
     """
