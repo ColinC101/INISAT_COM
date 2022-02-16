@@ -1,13 +1,14 @@
 from ioctl import Ioctl
 from machine import UART
 from network import WLAN
-import time
+import utime
 import json
+import config
 import general
 import state
 import udpserver
 from aliases import *
-import main # To remove when we move WiFi out of main
+import wifi
 import LoRa
 
 # Getting the UART object initialized in general.py
@@ -15,9 +16,6 @@ uart = state.ioctlObj.getObject(Ioctl.KEY_UART_OBC)
 
 # Data for UDP transmission
 readingsUDP = {}
-
-# Lambda function to get the time since epoch in milliseconds
-milliseconds = lambda: int(time() * 1000)
 
 def readSlot():
     """
@@ -44,18 +42,18 @@ def serialRead():
         if (inChar == UART_COMMAND_AUTOTEST):
             autotestData = {}
             # TODO: May need to be changed if WiFi implementation is put in a separate file
-            autotestData[JSON_AUTOTEST_WIFI_MODE] = main.wlan.mode()
-            autotestData[JSON_AUTOTEST_WIFI_POWER] = main.wlan.max_tx_power()
-            autotestData[JSON_AUTOTEST_WIFI_IP] = main.localIp  # TODO: Find a better way to get this
+            autotestData[JSON_AUTOTEST_WIFI_MODE] = state.wifiObj.wlan.mode()
+            autotestData[JSON_AUTOTEST_WIFI_POWER] = state.wifiObj.wlan.max_tx_power()
+            autotestData[JSON_AUTOTEST_WIFI_IP] = config.localIp  # TODO: Find a better way to get this
 
             autotestData[JSON_AUTOTEST_PING_CAMERA] = 0  # TODO: Implement a pingCamera function to get the status (see .ino)
             
-            autotestData[JSON_AUTOTEST_LORA_POWER] = LoRa.lora.stats()[6]
-            autotestData[JSON_AUTOTEST_LORA_SPREADINGFACTOR] = LoRa.lora.sf()
-            autotestData[JSON_AUTOTEST_LORA_BANDWIDTH] = LoRa.lora.bandwidth()
-            autotestData[JSON_AUTOTEST_LORA_FREQUENCY] = LoRa.lora.frequency()
-            autotestData[JSON_AUTOTEST_LORA_CODINGRATE] = LoRa.lora.coding_rate()
-            autotestData[JSON_AUTOTEST_LORA_PREAMBLE] = LoRa.lora.preamble()
+            autotestData[JSON_AUTOTEST_LORA_POWER] = state.loraObj.lora.stats()[6]
+            autotestData[JSON_AUTOTEST_LORA_SPREADINGFACTOR] = state.loraObj.LoRa.lora.sf()
+            autotestData[JSON_AUTOTEST_LORA_BANDWIDTH] = state.loraObj.LoRa.lora.bandwidth()
+            autotestData[JSON_AUTOTEST_LORA_FREQUENCY] = state.loraObj.LoRa.lora.frequency()
+            autotestData[JSON_AUTOTEST_LORA_CODINGRATE] = state.loraObj.LoRa.lora.coding_rate()
+            autotestData[JSON_AUTOTEST_LORA_PREAMBLE] = state.loraObj.LoRa.lora.preamble()
 
             # Fillers for retro-compatibility
             autotestData[JSON_AUTOTEST_VOID1] = ""
@@ -70,7 +68,7 @@ def serialRead():
             del autotestData
 
             # Sending the data to the web interface
-            general.autotestEvent.send(testsResults, "TEST_readings", milliseconds())
+            general.autotestEvent.send(testsResults, "TEST_readings", utime.ticks_ms())
             # Sending the data through UDP, only if needed
             if (state.udpCom):
                 replyBuffer = "A"
@@ -225,7 +223,7 @@ def serialRead():
             # Sending the data to twhere it is needed
 
             if state.affCons_ex:
-                general.consoleEvent.send(readingsResults, "CAP_readings", milliseconds())
+                general.consoleEvent.send(readingsResults, "CAP_readings", utime.ticks_ms())
                 print("Event 'CAP_readings' sent")
                 # Sending the data through UDP, only if needed
                 if (state.udpCom):
@@ -234,14 +232,15 @@ def serialRead():
                 state.affCons_ex = 0
 
             if state.affGraph_ex:
-                general.graphEvent(readingsResults, "CAP_readings2", milliseconds())
+                general.graphEvent(readingsResults, "CAP_readings2", utime.ticks_ms())
                 state.affGraph_ex = 0
 
             if state.affInterface_ex:
-                general.interfaceEvent(readingsResults, "CAP_readings3", milliseconds())
+                general.interfaceEvent(readingsResults, "CAP_readings3", utime.ticks_ms())
                 state.affInterface_ex = 0
 
             # TODO: Add GNSS & LoRa (maybe)
+            # S'inspirer de GNSS_transmit dans general.py
 
     
     else:
@@ -253,7 +252,7 @@ def serialWrite():
     Sends a command corresponding to the state
     """
     # Getting only once all the elements necessary to know what to send
-    userConnected = (len(main.getConnectedDevices) != 0)
+    userConnected = (len(wifi.getConnectedDevices) != 0)
     loraOn = state.loraObj.getLoraStatus()
     state.udpCom
     state.autoTesting
