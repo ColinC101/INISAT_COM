@@ -8,12 +8,13 @@ class TcpServer:
     # The size of receiving buffer
     RECEIVE_BUFFER_SZ = 4096
 
-    def __init__(self,cbList, eventList):
+    def __init__(self,cbList, cbArgList, eventList):
         """
         Init the TCP server with the given port
         """
         self.tcpSocket = None
         self.cbList = cbList
+        self.cbArgList = cbArgList
         self.eventList = eventList
 
     def bind(self,localIP,localPort):
@@ -53,7 +54,7 @@ class TcpServer:
         splitRequest = str(request).split(" ")
 
         #Default response header
-        http_header = b"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection:close \r\n\r\n"
+        http_header = b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nConnection:close \r\n\r\n"
 
         #List of possible response file types
         mimeTypeList = [(".html", b"text/html"),
@@ -69,19 +70,29 @@ class TcpServer:
         else:
             #Get the requested ressource
             requestContent = "index.html" if splitRequest[1]=="/" else splitRequest[1][1:]
+            requestParams = []
+            if "?" in requestContent: #If request has parameters
+                splitRequestContent = requestContent.split("?")
+                requestContent = splitRequestContent[0]
+                for i in splitRequestContent[1:].split("&"):
+                    requestParams.append(i.split("=")[1])
 
             #Check the type of the request
 
             #If event, bind the eventSource and return without closing the socket
-            if requestContent in self.eventList:
-                self.eventList[requestContent].bind(clientSocket)
+            if requestContent.lower() in self.eventList:
+                self.eventList[requestContent.lower()].bind(clientSocket)
                 http_header = b"HTTP/1.1 200 OK\r\nCache-Control: no-cache\r\nContent-Type: text/event-stream\r\n\r\n"
                 sentBytes = clientSocket.send(http_header)
                 return sentBytes
 
             #If command, return command response
-            elif requestContent in self.cbList:
-                http_body = self.cbList[requestContent]()
+        elif requestContent.lower() in self.cbList:
+                http_body = self.cbList[requestContent.lower()]()
+
+            #If command requesting args, retun command response
+        elif requestContent.lower() in self.cbArgList:
+                http_body = self.cbArgList[requestContent.lower()](requestParams)
 
             #If file
             else:
