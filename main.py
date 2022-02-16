@@ -50,6 +50,9 @@ while True:
         # Deactivate the LoRa LED if it is still active while LoRa is off
         state.ioctlObj.getObject(Ioctl.KEY_LORA_LED).value(0)
 
+    if state.camStatus != state.ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value():
+        # Update camera control PIN if needed
+        state.ioctlObj.getObject(Ioctl.KEY_CAM_CONTROL).value(state.camStatus)
 
     utime.sleep(1)
     print("Attempt to read UDP...")

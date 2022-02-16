@@ -757,7 +757,7 @@ cbList = {"none":cbNone,"stopudp":cbStopUDP,"beginudp":cbBeginUDP,"state":cbStat
 "lumioff":cbLumiOff,"locon":cbLocOn,"locoff":cbLocOff,"nmeaon":cbNMEAon,"nmeaoff":cbNMEAoff,
 "allon":cbAllOn,"alloff":cbAllOff,"lorastate":cbLoraState,"camstate":cbCameraState,"dmagon":cbDemagOn,
 "magt1":cbMagt1,"mcamoffagt2":cbMagt2,"magt3":cbMagt3,"magt4":cbMagt4,"stpmgt":cbStopMgt,"help":cbHelp,
-"camon":cbCamOn,"":cbCamOff}
+"camon":cbCamOn,"camoff":cbCamOff}
 
 cbArgList = {"tcons":cbTCons,"rirot":cbRiRot,"mgrot":cbMgRot}
 
