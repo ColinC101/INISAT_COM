@@ -18,7 +18,7 @@ import state
 
 
 #Getting WLAN object
-wlan = WLAN()
+wlan = WLAN() 
 
 ########################### HANDLING ###########################
 
@@ -58,11 +58,18 @@ def macDecoder(macAddr):
         Returns:
             decodedAddr (str): The decoded MAC address
     """
-	decodedAddr = ""
-	for i in macAddr:
-		decodedAddr = decodedAddr + '{:02X}'.format(i) + ":"
-	return decodedAddr[:17]
-
+    pos = 0
+    decodedAddr = ""
+    while pos < len(macAddr):
+        if macAddr[pos] == "\\":
+            pos += 1
+        elif macAddr[pos] == "x":
+            decodedAddr = decodedAddr + macAddr[pos+1:pos+3] + ":"
+            pos += 3
+        else:
+            decodedAddr = decodedAddr + "??:"
+            pos += 1
+    return decodedAddr
 
 
 def getConnectedDevices():
@@ -75,10 +82,7 @@ def getConnectedDevices():
     deviceList = wlan.ap_tcpip_sta_list()
     print("Connected devices :")
     for i in (deviceList):
-        try:
-            print("MAC: " + macDecoder(i.MAC)  + "|IP : " + i.IP)
-        except:
-            print("MAC: ??.??.??.??.??.?? |IP: " + i.IP)
+        print("MAC: " + macDecoder(i.MAC)  + "|IP : " + i.IP)
     return deviceList
     #i.mac.decode('utf-16')
     #b'\xf4B\x8f\x96\xb1\x91'
@@ -128,7 +132,7 @@ print(config.wifiSsid)
 #udpReceive();
 
 # Init IOs
-general.initSystemHardware()
+general.setupGPIO()
 
 # Init WiFi
 initWifi()
@@ -136,13 +140,11 @@ initWifi()
 # Init LoRa
 general.initLoRa()
 
-general.startTCPServer()
 general.startUDPServer("192.168.4.1")
-x=0
+
 while True:
-    utime.sleep(1)
-    x+=1
-    print("#"+str(x)+"Attempt to read UDP...")
+    utime.sleep(5)
+    print("Attempt to read UDP...")
     general.udpServ.readPacket()
 # Start WebServer
 initWeb()
