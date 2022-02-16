@@ -4,7 +4,7 @@ def init():
     """
     Init state variables
     """
-    global consoleConfig,consFlag,autoTesting,consoleInterval,modeGnss,camStatus,udpCom,testMag,ioctlObj,wifiObj,loraObj,gnssStartTime,chartsConfig,deMag,readingsJSON, affCons, affGraph, affInterface, affLora, affModeGnss, affCons_ex, affGraph_ex, affInterface_ex, affLora_ex
+    global consoleConfig,autoTesting,consoleInterval,modeGnss,camStatus,udpCom,testMag,ioctlObj,wifiObj,loraObj,gnssStartTime,chartsConfig,deMag,readingsJSON, affCons, affGraph, affInterface, affLora, affModeGnss, affCons_ex, affGraph_ex, affInterface_ex, affLora_ex,wifiLastBlink,loraLastBlink
 
     # Console configuration
     consoleConfig = aliases.CONSOLE_CONFIG_DISABLED
@@ -59,4 +59,9 @@ def init():
     affGraph_ex = False
     affInterface_ex = False
     affLora_ex = False
+    
+    # Time in ms indicating the last blinking instant for WiFi LED
+    wifiLastBlink = 0
 
+    # Same for LoRa LED
+    loraLastBlink = 0
