@@ -52,7 +52,7 @@ class OBCuart:
             if (inChar == UART_COMMAND_AUTOTEST):
                 autotestData = {}
                 autotestData[JSON_AUTOTEST_WIFI_MODE] = state.wifiObj.wlan.mode()  # TODO: Change mode representation (see .ino)
-                autotestData[JSON_AUTOTEST_WIFI_POWER] = wifi.WifiObject.convertTxPower(state.wifiObj.wlan.max_tx_power())
+                autotestData[JSON_AUTOTEST_WIFI_POWER] = state.wifiObj.wlan.max_tx_power()/4
                 autotestData[JSON_AUTOTEST_WIFI_IP] = config.localIp
 
                 autotestData[JSON_AUTOTEST_PING_CAMERA] = 0  # TODO: Implement a pingCamera function to get the status (see .ino)
