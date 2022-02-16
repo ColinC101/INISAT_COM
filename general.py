@@ -649,6 +649,17 @@ def cbSingleM(arg):
 ## END - SINGLE-CHAR UDP COMMANDS ##
 #### END - UDP COMMANDS #####
 
+def gnssSaveFile(newLine):
+    """
+    Saves the GNSS data in a text file
+    """
+    # TODO: We may need to reset the file at the first execution -> Use a flag ?
+    try:
+        with open("web/Trajectoire_GNSS.txt", 'a') as file:
+            file.write(newLine)
+    except OSError:
+        print("Echec lors de l'ouverture du fichier Trajectoire_GNSS pour la sauvegarde des données.")
+
 def gnssTransmitUDP():
     """
     Transmit GNSS data stored in a file, over UDP
