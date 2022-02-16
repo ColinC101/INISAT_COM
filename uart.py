@@ -248,7 +248,8 @@ class OBCuart:
                     state.affInterface_ex = 0
 
                 # Save GNSS data to a text file
-                general.gnssSaveFile(state.readingsJSON[JSON_GNSS_LATITUDE], state.readingsJSON[JSON_GNSS_LONGITUDE])
+                GNSS_string = state.readingsJSON[JSON_GNSS_LATITUDE] + " , " + state.readingsJSON[JSON_GNSS_LONGITUDE]
+                general.gnssSaveFile(GNSS_string)
 
                 # TODO: Add LoRa transmission
 
