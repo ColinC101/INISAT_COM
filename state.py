@@ -4,7 +4,7 @@ def init():
     """
     Init state variables
     """
-    global consoleConfig,autoTesting,consoleInterval,modeGnss,modeGnss_ex,camStatus,udpCom,testMag,ioctlObj,wifiObj,loraObj,gnssStartTime,chartsConfig,deMag,readingsJSON, affCons, affGraph, affInterface, affLora, affModeGnss, affCons_ex, affGraph_ex, affInterface_ex, affLora_ex,wifiLastBlink,loraLastBlink
+    global consoleConfig,autoTesting,consoleInterval,modeGnss,modeGnss_ex,camStatus,udpCom,testMag,ioctlObj,wifiObj,loraObj,gnssStartTime,chartsConfig,deMag,readingsJSON, affCons, affGraph, affInterface, affLora, affModeGnss, affCons_ex, affGraph_ex, affInterface_ex, affLora_ex,wifiLastBlink,loraLastBlink,lastOBCTime,lastUserTime,userConnected,lastLoRaTime,lastConsoleTime,lastChartsTime,chartsInterval,lastInterfaceTime
 
     # Console configuration
     consoleConfig = aliases.CONSOLE_CONFIG_DISABLED
@@ -66,3 +66,29 @@ def init():
 
     # Same for LoRa LED
     loraLastBlink = 0
+
+    # startTime in .ino
+    # Last time OBC has been read (in ms)
+    lastOBCTime = 0
+
+    # user_start in .ino
+    # Last time instant of user's signaling request ('/ouvPage' or '/user')
+    lastUserTime = 0
+
+    # Indicate if a user is connected to the browser (0 => False, 1 => True)
+    userConnected = 0
+
+    #  Indicate the last time instant where LoRa request have been made
+    lastLoRaTime = 0
+
+    # Indicate the last time instant where console data have been requested
+    lastConsoleTime = 0
+
+    # Indicate the last time instant where charts data have been requested
+    lastChartsTime = 0
+
+    # Charts updating interval (ms)
+    chartsInterval = 5000
+
+    # Indicate the last time instant where interface data have been requested
+    lastInterfaceTime = 0
