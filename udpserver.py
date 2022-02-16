@@ -24,7 +24,7 @@ class UdpServer:
         """
         self.udpSocket = None
         self.lastRemoteAddr = ""
-        self.lastRemotePort = 0
+        self.lastRemotePort = -1
         self.cbList = cbList
         self.cbArgList = cbArgList
         self.cbSingleChar = cbSingleChar
@@ -127,4 +127,5 @@ class UdpServer:
         Send a UDP packet to the last remote machine
         @arg msg(str): the content of the UDP packet
         """
-        self.udpSocket.sendto(bytes(msg,"utf-8"),(self.lastRemoteAddr,self.lastRemotePort))
+        if (self.lastRemoteAddr != "" and self.lastRemotePort != -1):
+            self.udpSocket.sendto(bytes(msg,"utf-8"),(self.lastRemoteAddr,self.lastRemotePort))

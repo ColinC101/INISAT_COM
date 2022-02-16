@@ -205,3 +205,9 @@ CHART_MAGNETIC_FIELD = 'e'
 CHART_LINEAR_ACCELERATION = 'f'
 CHART_GRAVITY = 'g'
 CHART_LUMINANCE = 'l'
+
+
+#######################################
+############  TEST MAGNETO ############
+#######################################
+MAGNETO_TEST_FIN = "B"
