@@ -247,8 +247,10 @@ class OBCuart:
                     general.interfaceEvent(readingsResults, "CAP_readings3", utime.ticks_ms())
                     state.affInterface_ex = 0
 
-                # TODO: Add GNSS & LoRa (maybe)
-                # S'inspirer de GNSS_transmit dans general.py
+                # Save GNSS data to a text file
+                general.gnssSaveFile(state.readingsJSON[JSON_GNSS_LATITUDE], state.readingsJSON[JSON_GNSS_LONGITUDE])
+
+                # TODO: Add LoRa transmission
 
         
         else:
