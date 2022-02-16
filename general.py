@@ -7,6 +7,7 @@ from machine import PWM
 from machine import UART
 from machine import Pin
 from ioctl import Ioctl
+import wifi
 import LoRa
 import eventsource
 import state
@@ -25,6 +26,12 @@ udpPort = 9991
 
 # Mapping between rotation direction command and pin value
 rotationDirMap = {"h":0,"a":1}
+
+def initWiFi():
+    """
+    Init WiFi
+    """
+    state.wifiObj.initWifi()
 
 def initLoRa():
     """
@@ -765,6 +772,9 @@ def initSystemHardware():
     # Ioctl object for IO interfaces
     state.ioctlObj = Ioctl()
     setupGPIO()
+
+    # WiFi
+    state.wifiObj = wifi.WifiObject()
 
     # LoRa
     state.loraObj = LoRa.LoraObject()

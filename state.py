@@ -4,7 +4,7 @@ def init():
     """
     Init state variables
     """
-    global consoleConfig,consFlag,autoTesting,consoleInterval,modeGnss,camStatus,udpCom,testMag,ioctlObj,loraObj,gnssStartTime,chartsConfig,deMag,readingsJSON, affCons, affGraph, affInterface, affLora, affModeGnss, affCons_ex, affGraph_ex, affInterface_ex, affLora_ex
+    global consoleConfig,consFlag,autoTesting,consoleInterval,modeGnss,camStatus,udpCom,testMag,ioctlObj,wifiObj,loraObj,gnssStartTime,chartsConfig,deMag,readingsJSON, affCons, affGraph, affInterface, affLora, affModeGnss, affCons_ex, affGraph_ex, affInterface_ex, affLora_ex
 
     # Console configuration
     consoleConfig = aliases.CONSOLE_CONFIG_DISABLED
@@ -33,6 +33,9 @@ def init():
 
     # IOCTL
     ioctlObj = None
+
+    # WIFI
+    wifiObj = None
 
     # LORA
     loraObj = None
