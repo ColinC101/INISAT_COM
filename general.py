@@ -22,7 +22,6 @@ demagEvent = EventSource("demagEvent")
 
 # UDP Server object
 udpServ = None
-udpPort = 9991
 
 # Mapping between rotation direction command and pin value
 rotationDirMap = {"h":0,"a":1}
@@ -763,7 +762,7 @@ def startUDPServer(localIP):
     """
     global udpServ
     udpServ = UdpServer(cbList,cbArgList,cbSingleCharList)
-    udpServ.bind(localIP,udpPort)
+    udpServ.bind(localIP,config.UDP_PORT)
 
 def initSystemHardware():
     """ 

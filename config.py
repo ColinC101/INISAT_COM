@@ -33,9 +33,6 @@ UART_OBC_BAUD = 115200
 #######################  WEB SERVER CONFIG   ###################
 ################################################################
 
-# Server IP address
-localIP = "192.168.4.1"
-
 # Server Port
 tcpPort = 8080
 
@@ -95,3 +92,8 @@ loraPublicSync = True
 loraAdaptativeDataRate = 0
 loraTxRetries = 0
 loraDeviceClass = 0
+
+################################################################
+#######################  UDP SERVER CONFIG   ###################
+################################################################
+UDP_PORT = 9991
