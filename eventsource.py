@@ -23,8 +23,6 @@ class EventSource:
 
         self.lnkSocket = socketClient
 
-        responseHeader = b"HTTP/1.1 200 OK\r\nCache-Control: no-cache\r\nContent-Type: text/event-stream\r\n\r\n"
-        socketClient.send(responseHeader)
 
     def send(self,func_name,data,id):
         """
@@ -36,7 +34,7 @@ class EventSource:
         messageBody = "id: "+str(id)+"\n"
         messageBody += "event: "+func_name+"\n"
         messageBody += "data: "+data+"\n\n"
-        
+
         if self.lnkSocket != None:
             try:
                 self.lnkSocket.send(bytes(messageBody, 'utf-8'))

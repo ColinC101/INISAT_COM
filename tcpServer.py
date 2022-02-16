@@ -39,7 +39,7 @@ class TcpServer:
                 else:
                     print("Exception: errno="+str(err.errno))
                 tcpClientsocket.close()
-            
+
     def readRequest(self,clientSocket):
         """
         TCP request handler.
@@ -72,9 +72,10 @@ class TcpServer:
 
             #Check the type of the request
 
-            #If event, bind the eventSource and return withour closing the socket
+            #If event, bind the eventSource and return without closing the socket
             if requestContent in self.eventList:
                 self.eventList[requestContent].bind(clientSocket)
+                http_header = b"HTTP/1.1 200 OK\r\nCache-Control: no-cache\r\nContent-Type: text/event-stream\r\n\r\n"
                 http_body = requestContent + " bounded."
                 sentBytes = clientSocket.send(http_header + http_body)
                 return sentBytes

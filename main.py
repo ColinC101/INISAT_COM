@@ -16,6 +16,7 @@ import micropython
 import config
 import state
 
+
 ################################################################
 #######################     EXECUTION    #######################
 ################################################################
@@ -24,7 +25,7 @@ state.init()
 print(config.wifiSsid)
 
 # Init IOs
-general.initSystemHardware()
+general.setupGPIO()
 
 # Init WiFi
 general.initWiFi()
@@ -35,10 +36,10 @@ general.initLoRa()
 general.startTCPServer()
 general.startUDPServer(config.localIP)
 x=0
+
 while True:
-    utime.sleep(1)
-    x+=1
-    print("#"+str(x)+"Attempt to read UDP...")
+    utime.sleep(5)
+    print("Attempt to read UDP...")
     general.udpServ.readPacket()
 # Start WebServer
 initWeb()
