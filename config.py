@@ -33,9 +33,6 @@ UART_OBC_BAUD = 115200
 #######################  WEB SERVER CONFIG   ###################
 ################################################################
 
-# Server IP address
-localIP = "192.168.4.1"
-
 # Server Port
 tcpPort = 8080
 
@@ -50,6 +47,9 @@ maxFailedConnection = 5
 ################################################################
 
 #   https://docs.pycom.io/firmwareapi/pycom/network/wlan/#app
+
+# IP of server
+localIP = "192.168.4.1"
 
 # Wifi mode (AP, STA or STA_AP)
 wifiMode = WLAN.AP 
@@ -95,3 +95,8 @@ loraPublicSync = True
 loraAdaptativeDataRate = 0
 loraTxRetries = 0
 loraDeviceClass = 0
+
+################################################################
+#######################  UDP SERVER CONFIG   ###################
+################################################################
+UDP_PORT = 9991

@@ -16,35 +16,6 @@ import micropython
 import config
 import state
 
-
-
-################################################################
-#######################        UDP       #######################
-################################################################
-
-"""
-def udpSend():
-    udpIp = "192.168.4.2"
-    udpPort = 55057
-    udpMsg = b"Coucou"
-    sock = socket.socket(socket.AF_INET, # Interne
-                         socket.SOCK_DGRAM) # UDP
-    sock.sendto(udpMsg, (udpIp, udpPort))
-    #print("Sent \"" + udpMsg + "\" to " + udpIp)
-
-def udpReceive():
-    print("Ready to receive ...")
-    udpIp = "192.168.4.1"
-    udpPort = 5005
-    sock = socket.socket(socket.AF_INET,
-                         socket.SOCK_DGRAM)
-    sock.bind((udpIp, udpPort))
-    while True:
-        data, addr = sock.recvfrom(1024) #Buffer size
-        print("Received UDP mdg : %s" % data)
-"""
-
-
 ################################################################
 #######################     EXECUTION    #######################
 ################################################################
@@ -62,7 +33,7 @@ general.initWiFi()
 general.initLoRa()
 
 general.startTCPServer()
-general.startUDPServer("192.168.4.1")
+general.startUDPServer(config.localIP)
 x=0
 while True:
     utime.sleep(1)
