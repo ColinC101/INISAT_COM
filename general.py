@@ -940,21 +940,28 @@ def testMagneto(paramStruct):
                 state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(Sx)
                 state.ioctlObj.getObject(Ioctl.KEY_PWM_Y).duty_cycle(Sy)
                 utime.sleep_ms(selectedP)
-    utime.sleep_ms(100)
 
-    # Event source fin --
-    # UDP fin
+    utime.sleep_ms(100)
+    demagEvent.send("fct_fin", aliases.MAGNETO_TEST_FIN, utime.ticks_ms())
+    
     utime.sleep_ms(100)
     state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1.0)
+    
     utime.sleep_ms(100)
     state.ioctlObj.getObject(Ioctl.KEY_PWM_Y).duty_cycle(1.0)
+    
+    # Re-send the event to make sure it has been received by the browser
+    utime.sleep_ms(200)
+    demagEvent.send("fct_fin", aliases.MAGNETO_TEST_FIN, utime.ticks_ms())
+    
     utime.sleep_ms(100)
+    demagEvent.send("fct_fin", aliases.MAGNETO_TEST_FIN, utime.ticks_ms())
+    
+    utime.sleep_ms(100)
+    udpServ.sendToLastRemote("Test fini.\r\n")
 
     print("Stop test magneto-coupler "+str(tstIdx))
-
-
-    # Send event5 fin
-    utime.sleep_ms(100)
+    
     return "Test du magnéto-coupleur " + str(tstIdx) + " terminé !"
 
 
