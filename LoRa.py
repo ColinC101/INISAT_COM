@@ -61,15 +61,14 @@ class LoraObject:
         self.__loraStatus__ = False
 
 
-    def sendReadings(self):
+    def sendReadings(self, data):
         """
         Sends the collected data via the LoRa link.
+        Parameter 'data' must be a string
         """
         # Creating communication Socket
         s = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
-        s.setblocking(False)
-        # TODO: Ajouter les envois des données
-            # (quand les données seront ajoutées)
+        s.send(data)
         s.close()
 
 

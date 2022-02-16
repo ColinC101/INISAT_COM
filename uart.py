@@ -16,7 +16,7 @@ class OBCuart:
     Class used to handle communication with OBC
     """
 
-    def __init__(self,uartLink):
+    def __init__(self, uartLink):
         """
         Initialize the class with the given uart object
         """
@@ -25,16 +25,17 @@ class OBCuart:
         # Data for UDP transmission
         self.readingsUDP = {}
 
-    def __readSlot__(self):
+    def __readSlot__(self, separator='@'):
         """
-        Reads data sent by UART until reception of the separator '@'.
+        Reads data sent by UART until reception of the separator.
+        Default separator is character '@'.
         Returns the characters read, excluding the separator.
         """
         buf = ''
         if (self.uart.any()):
             while True:
                 buf += self.uart.read(1)
-                if (buf[-1] == '@'):
+                if (buf[-1] == separator):
                     buf = buf[:-1]
                     break
         return buf
@@ -47,12 +48,12 @@ class OBCuart:
         if (self.uart.any()):
             # Reading the identifier of the command
             inChar = self.uart.read(uartCommandSize)
+
             if (inChar == UART_COMMAND_AUTOTEST):
                 autotestData = {}
-                # TODO: May need to be changed if WiFi implementation is put in a separate file
-                autotestData[JSON_AUTOTEST_WIFI_MODE] = state.wifiObj.wlan.mode()
-                autotestData[JSON_AUTOTEST_WIFI_POWER] = state.wifiObj.wlan.max_tx_power()
-                autotestData[JSON_AUTOTEST_WIFI_IP] = config.localIp  # TODO: Find a better way to get this
+                autotestData[JSON_AUTOTEST_WIFI_MODE] = state.wifiObj.wlan.mode()  # TODO: Change mode representation (see .ino)
+                autotestData[JSON_AUTOTEST_WIFI_POWER] = wifi.WifiObject.convertTxPower(state.wifiObj.wlan.max_tx_power())
+                autotestData[JSON_AUTOTEST_WIFI_IP] = config.localIp
 
                 autotestData[JSON_AUTOTEST_PING_CAMERA] = 0  # TODO: Implement a pingCamera function to get the status (see .ino)
                 
@@ -73,7 +74,6 @@ class OBCuart:
 
                 # Conversion towards JSON string
                 testsResults = json.dumps(autotestData)
-                del autotestData
 
                 # Sending the data to the web interface
                 general.autotestEvent.send(testsResults, "TEST_readings", utime.ticks_ms())
@@ -86,6 +86,7 @@ class OBCuart:
                     replyBuffer = replyBuffer[:-1] + "@"
                     udpserver.sendToLastRemote(replyBuffer)
             
+
             elif (inChar == UART_COMMAND_EPS):
                 tmpData = self.__readSlot__()
                 tmpDataSplit = tmpData.split('#')
@@ -224,46 +225,50 @@ class OBCuart:
                 state.readingsJSON[JSON_NMEA_9] = ""
                 self.readingsUDP[CONSCONFIG_NMEA] = UART_COMMAND_NMEA + tmpData + '@'
                 
+
             elif (inChar == UART_COMMAND_END):
                 # Conversion towards JSON string
                 readingsResults = json.dumps(state.readingsJSON)
 
-                # Sending the data to twhere it is needed
-
+                # Sending data to the console
                 if state.affCons_ex:
                     general.consoleEvent.send(readingsResults, "CAP_readings", utime.ticks_ms())
                     print("Event 'CAP_readings' sent")
-                    # Sending the data through UDP, only if needed
+                    # Sending the data through UDP link too, only if needed
                     if (state.udpCom):
                         for v in self.readingsUDP.values():
                             udpserver.sendToLastRemote(v)
                     state.affCons_ex = 0
 
+                # Sending data to the charts
                 if state.affGraph_ex:
                     general.graphEvent(readingsResults, "CAP_readings2", utime.ticks_ms())
                     state.affGraph_ex = 0
 
+                # Sending data to the web interface
                 if state.affInterface_ex:
                     general.interfaceEvent(readingsResults, "CAP_readings3", utime.ticks_ms())
                     state.affInterface_ex = 0
 
-                # Save GNSS data to a text file
-                GNSS_string = state.readingsJSON[JSON_GNSS_LATITUDE] + " , " + state.readingsJSON[JSON_GNSS_LONGITUDE]
-                general.gnssSaveFile(GNSS_string)
+                # Saving GNSS data to a text file
+                if state.modeGnss_ex:
+                    GNSS_string = state.readingsJSON[JSON_GNSS_LATITUDE] + " , " + state.readingsJSON[JSON_GNSS_LONGITUDE]
+                    general.gnssSaveFile(GNSS_string)
 
-                # TODO: Add LoRa transmission
+                # Transmitting data through LoRa link
+                if (state.affLora_ex and state.loraObj.getLoraStatus()):
+                    state.loraObj.sendReadings(readingsResults)
 
-        
         else:
             print("Nothing to read")
 
 
     def serialWrite(self):
         """
-        Sends a command corresponding to the state
+        Sends commands to the OBC
         """
         # Getting only once all the elements necessary to know what to send
-        userConnected = (len(wifi.getConnectedDevices) != 0)
+        userConnected = (len(wifi.getConnectedDevices) != 0)  # TODO: Modify this when better solution is found in tcpServer.py
         loraOn = state.loraObj.getLoraStatus()
         
         requireResponse = False
