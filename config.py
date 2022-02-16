@@ -48,6 +48,9 @@ maxFailedConnection = 5
 
 #   https://docs.pycom.io/firmwareapi/pycom/network/wlan/#app
 
+# IP of server
+localIP = "192.168.4.1"
+
 # Wifi mode (AP, STA or STA_AP)
 wifiMode = WLAN.AP 
 
