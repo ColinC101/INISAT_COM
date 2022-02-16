@@ -72,6 +72,9 @@ wifiAntenna = WLAN.INT_ANT
 # WiFi power in dBm
 wifiMaxTxPower = 19.5 
 
+# Blink period for WiFi LED 
+WIFI_LED_BLINK_CYCLE = 3000
+
 ################################################################
 #######################  LoRa CONFIG     #######################
 ################################################################
@@ -95,6 +98,9 @@ loraPublicSync = True
 loraAdaptativeDataRate = 0
 loraTxRetries = 0
 loraDeviceClass = 0
+
+# Blink period for LoRa LED
+LORA_LED_BLINK_CYCLE = 3000
 
 ################################################################
 #######################  UDP SERVER CONFIG   ###################

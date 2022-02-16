@@ -757,7 +757,7 @@ cbList = {"none":cbNone,"stopudp":cbStopUDP,"beginudp":cbBeginUDP,"state":cbStat
 "lumioff":cbLumiOff,"locon":cbLocOn,"locoff":cbLocOff,"nmeaon":cbNMEAon,"nmeaoff":cbNMEAoff,
 "allon":cbAllOn,"alloff":cbAllOff,"lorastate":cbLoraState,"camstate":cbCameraState,"dmagon":cbDemagOn,
 "magt1":cbMagt1,"mcamoffagt2":cbMagt2,"magt3":cbMagt3,"magt4":cbMagt4,"stpmgt":cbStopMgt,"help":cbHelp,
-"camon":cbCamOn,"":cbCamOff}
+"camon":cbCamOn,"camoff":cbCamOff}
 
 cbArgList = {"tcons":cbTCons,"rirot":cbRiRot,"mgrot":cbMgRot}
 
@@ -965,8 +965,6 @@ def testMagneto(paramStruct):
     return "Test du magnéto-coupleur " + str(tstIdx) + " terminé !"
 
 
-
-
 def stopTestMag(paramStruct):
     """
     Stops all running tests on the magneto-couplers
@@ -974,3 +972,29 @@ def stopTestMag(paramStruct):
     state.testMag = 0
     demagEvent.send("fct_fin", "B", utime.ticks_ms())
     return "Arrêt du test ..."
+
+def blinkWiFiLED():
+    """
+    Blink the WiFi LED at period set in config file (WIFI_LED_BLINK_CYCLE).
+    Note: the period may be longer if this function is called too late
+    """
+    if (utime.ticks_ms() - state.wifiLastBlink) > config.WIFI_LED_BLINK_CYCLE:
+        # Invert led status
+        newLedStatus = int(not state.ioctlObj.getObject(Ioctl.KEY_WIFI_LED).value())
+        
+        # Update WiFi led status
+        state.ioctlObj.getObject(Ioctl.KEY_WIFI_LED).value(newLedStatus)
+        state.wifiLastBlink = utime.ticks_ms()
+
+def blinkLoRaLED():
+    """
+    Blink the LoRa LED at period set in config file (LORA_LED_BLINK_CYCLE).
+    Note: the period may be longer if this function is called too late
+    """
+    if (utime.ticks_ms() - state.loraLastBlink) > config.LORA_LED_BLINK_CYCLE:
+        # Invert led status
+        newLedStatus = int(not state.ioctlObj.getObject(Ioctl.KEY_LORA_LED).value())
+        
+        # Update LoRa led status
+        state.ioctlObj.getObject(Ioctl.KEY_LORA_LED).value(newLedStatus)
+        state.loraLastBlink = utime.ticks_ms()
