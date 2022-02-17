@@ -4,7 +4,7 @@ def init():
     """
     Init state variables
     """
-    global consoleConfig,autoTesting,consoleInterval,modeGnss,modeGnss_ex,camStatus,udpCom,testMag,ioctlObj,wifiObj,loraObj,gnssStartTime,chartsConfig,deMag,readingsJSON, affCons, affGraph, affInterface, affLora, affModeGnss, affCons_ex, affGraph_ex, affInterface_ex, affLora_ex,wifiLastBlink,loraLastBlink,lastOBCTime,lastUserTime,userConnected,lastLoRaTime,lastConsoleTime,lastChartsTime,chartsInterval,lastInterfaceTime
+    global consoleConfig,autoTesting,consoleInterval,modeGnss,modeGnss_ex,camStatus,udpCom,testMag,ioctlObj,wifiObj,loraObj,gnssStartTime,chartsConfig,deMag,readingsJSON, affCons, affGraph, affInterface, affLora, affModeGnss, affCons_ex, affGraph_ex, affInterface_ex, affLora_ex,wifiLastBlink,loraLastBlink,lastOBCTime,lastUserTime,userConnected,lastLoRaTime,lastConsoleTime,lastChartsTime,chartsInterval,lastInterfaceTime,udpServ
 
     # Console configuration
     consoleConfig = aliases.CONSOLE_CONFIG_DISABLED
@@ -14,9 +14,9 @@ def init():
 
     # Console updating interval (ms)
     consoleInterval = 5000
-
-    # Graph updating interval (ms)
-    graphInterval = 5000
+    
+    # Charts updating interval (ms)
+    chartsInterval = 5000
 
     # Enable / Disable GNSS
     modeGnss = 0
@@ -90,8 +90,8 @@ def init():
     # Indicate the last time instant where charts data have been requested
     lastChartsTime = 0
 
-    # Charts updating interval (ms)
-    chartsInterval = 5000
-
     # Indicate the last time instant where interface data have been requested
     lastInterfaceTime = 0
+
+    # UDP server
+    udpServ = None

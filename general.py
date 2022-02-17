@@ -1,3 +1,4 @@
+from email.charset import add_alias
 import math
 from udpserver import UdpServer
 from eventsource import EventSource
@@ -21,9 +22,6 @@ graphEvent = EventSource("graphEvent")
 interfaceEvent = EventSource("interfaceEvent")
 autotestEvent = EventSource("autotestEvent")
 demagEvent = EventSource("demagEvent")
-
-# UDP Server object
-udpServ = None
 
 # Mapping between rotation direction command and pin value
 rotationDirMap = {"h":0,"a":1,"s":-1}
@@ -617,7 +615,11 @@ def cbOuvPage():
     Init the configuration
     """
 
-    state.affInt_ex = 1
+    state.userConnected = 1
+    state.lastUserTime = utime.ticks_ms()
+    state.chartsConfig = aliases.CHARTS_CONFIG_DISABLED
+
+    state.affInterface_ex = 1
     state.affCons_ex = 0
     state.affGraph_ex = 0
     print("Valeurs Aff initialisées")
@@ -632,7 +634,7 @@ def cbOuvPage():
     initParams["cam"] = state.camStatus
     initParams["lora"] = state.loraObj.getLoraStatus()
     initParams["console_intv"] = state.consoleInterval
-    initParams["graph_intv"] = state.graphInterval
+    initParams["graph_intv"] = state.chartsInterval
     initParams["consf"] = "".join(state.consoleConfig)
     print("Config initiale transmise")
     return json.dumps(initParams)
@@ -694,7 +696,7 @@ def cbRiRot(args):
     if (angularSpeedRatio<0 or angularSpeedRatio >100):
         return "Veuillez choisir une valeur entre 0 et 100 % !"
 
-    unitAngularSpeed = 0 if (rotationDir == -1) else angularSpeedRatio / 100
+    unitAngularSpeed = 0 if (rotationDirMap[rotationDir] == -1) else angularSpeedRatio / 100
     setInertiaWheelSpeed(unitAngularSpeed,rotationDir)
 
     return "Config rirot+"+args[0]+"+"+args[1]+" recue .."
@@ -819,7 +821,7 @@ def cbSingleR(arg):
     if (angularSpeedRatio<0 or angularSpeedRatio >100):
         return "Veuillez choisir une valeur entre 0 et 100 % !"
 
-    unitAngularSpeed = angularSpeedRatio / 100
+    unitAngularSpeed =  0 if (rotationDirMap[rotationDir] == -1) else angularSpeedRatio / 100
     setInertiaWheelSpeed(unitAngularSpeed,rotationDir)
 
     return getState()
@@ -873,10 +875,10 @@ def gnssTransmitUDP():
                     # Remove trailing new line if it exists
                     strLine = strLine[:-1]
                 msgToSend = "W"+strLine+"@"+"\r\n"
-                udpServ.sendToLastRemote(msgToSend)
+                state.udpServ.sendToLastRemote(msgToSend)
                 print("Ligne envoyee: "+msgToSend)
                 utime.sleep_ms(100)
-            udpServ.sendToLastRemote("W#@\r\n")
+            state.udpServ.sendToLastRemote("W#@\r\n")
     except OSError:
         print("Echec lors de l'ouverture du fichier Trajectoire_GNSS pour transmission sur la liaison UDP")
 
@@ -1023,7 +1025,7 @@ def testMagneto(tstIdx):
     demagEvent.send("fct_fin", aliases.MAGNETO_TEST_FIN, utime.ticks_ms())
     
     utime.sleep_ms(100)
-    udpServ.sendToLastRemote("Test fini.\r\n")
+    state.udpServ.sendToLastRemote("Test fini.\r\n")
 
     print("Stop test magneto-coupler "+str(tstIdx))
     
@@ -1097,7 +1099,7 @@ def demag():
     demagEvent.send("fct_fin", aliases.MAGNETO_DEMAG_FIN, utime.ticks_ms())
     utime.sleep_ms(100)
 
-    udpServ.sendToLastRemote(" .. Demagnetisation Finie\r\n")
+    state.udpServ.sendToLastRemote(" .. Demagnetisation Finie\r\n")
 
 
 
@@ -1138,9 +1140,9 @@ def startUDPServer(localIP):
     """
     Start the UDP Server
     """
-    global udpServ
-    udpServ = UdpServer(cbList,cbArgList,cbSingleCharList)
-    udpServ.bind(localIP,config.UDP_PORT)
+    state.udpServ = UdpServer(cbList,cbArgList,cbSingleCharList)
+    state.udpServ.bind(localIP,config.UDP_PORT)
+    
 
  
 def startTCPServer():

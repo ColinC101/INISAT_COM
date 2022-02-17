@@ -6,7 +6,6 @@ import json
 import config
 import general
 import state
-import udpserver
 from aliases import *
 import wifi
 import LoRa
@@ -16,11 +15,10 @@ class OBCuart:
     Class used to handle communication with OBC
     """
 
-    def __init__(self, uartLink):
+    def __init__(self):
         """
         Initialize the class with the given uart object
         """
-        self.uart = uartLink
 
         # Data for UDP transmission
         self.readingsUDP = {}
@@ -31,10 +29,11 @@ class OBCuart:
         Default separator is character '@'.
         Returns the characters read, excluding the separator.
         """
+        uart = state.ioctlObj.getObject(Ioctl.KEY_UART_OBC)
         buf = ''
-        if (self.uart.any()):
+        if (uart.any()):
             while True:
-                buf += self.uart.read(1)
+                buf += uart.read(1)
                 if (buf[-1] == separator):
                     buf = buf[:-1]
                     break
@@ -45,9 +44,10 @@ class OBCuart:
         """
         Reads the command passed by the UART link and saves the data.
         """
-        if (self.uart.any()):
+        uart = state.ioctlObj.getObject(Ioctl.KEY_UART_OBC)
+        if (uart.any()):
             # Reading the identifier of the command
-            inChar = self.uart.read(uartCommandSize)
+            inChar = uart.read(uartCommandSize)
 
             if (inChar == UART_COMMAND_AUTOTEST):
                 autotestData = {}
@@ -84,7 +84,7 @@ class OBCuart:
                         replyBuffer += v
                         replyBuffer += "#"
                     replyBuffer = replyBuffer[:-1] + "@"
-                    udpserver.sendToLastRemote(replyBuffer)
+                    state.udpServ.sendToLastRemote(replyBuffer)
             
 
             elif (inChar == UART_COMMAND_EPS):
@@ -237,7 +237,7 @@ class OBCuart:
                     # Sending the data through UDP link too, only if needed
                     if (state.udpCom):
                         for v in self.readingsUDP.values():
-                            udpserver.sendToLastRemote(v)
+                            state.udpServ.sendToLastRemote(v)
                     state.affCons_ex = 0
 
                 # Sending data to the charts
@@ -268,58 +268,60 @@ class OBCuart:
         Sends commands to the OBC
         """
         # Getting only once all the elements necessary to know what to send
-        userConnected = (len(wifi.getConnectedDevices) != 0)  # TODO: Modify this when better solution is found in tcpServer.py
+        userConnected = state.userConnected
         loraOn = state.loraObj.getLoraStatus()
         
         requireResponse = False
 
+        uart = state.ioctlObj.getObject(Ioctl.KEY_UART_OBC)
+
         if ((userConnected or loraOn or state.udpCom) and not(state.autoTesting)):
             if (state.affCons and state.consoleConfig[CONSCONFIG_EPS]=='1') or (state.affGraph and (CHART_EPS in state.chartsConfig)) or (state.affInterface and userConnected) or (state.affLora and loraOn):
                 requireResponse = True
-                self.uart.write(UART_COMMAND_EPS)
+                uart.write(UART_COMMAND_EPS)
             if (state.affCons and state.consoleConfig[CONSCONFIG_TEMPERATURE]=='1') or (state.affGraph and (CHART_TEMPERATURE in state.chartsConfig)) or (state.affInterface and userConnected) or (state.affLora and loraOn):
                 requireResponse = True
-                self.uart.write(UART_COMMAND_TEMPERATURE)
+                uart.write(UART_COMMAND_TEMPERATURE)
             if (state.affCons and state.consoleConfig[CONSCONFIG_ALTITUDE]=='1') or (state.affGraph and (CHART_ALTITUDE in state.chartsConfig)) or (state.affInterface and userConnected) or (state.affLora and loraOn):
                 requireResponse = True
-                self.uart.write(UART_COMMAND_ALTITUDE)
+                uart.write(UART_COMMAND_ALTITUDE)
             if (state.affCons and state.consoleConfig[CONSCONFIG_PRESSION]=='1') or (state.affGraph and (CHART_PRESSION in state.chartsConfig)) or (state.affInterface and userConnected) or (state.affLora and loraOn):
                 requireResponse = True
-                self.uart.write(UART_COMMAND_PRESSION)
+                uart.write(UART_COMMAND_PRESSION)
             if (state.affCons and state.consoleConfig[CONSCONFIG_EULER]=='1') or (state.affGraph and (CHART_EULER in state.chartsConfig)) or (state.affInterface and userConnected) or (state.affLora and loraOn):
                 requireResponse = True
-                self.uart.write(UART_COMMAND_EULER)
+                uart.write(UART_COMMAND_EULER)
             if (state.affCons and state.consoleConfig[CONSCONFIG_QUATERNION]=='1') or (state.affGraph and (CHART_QUATERNION in state.chartsConfig)) or (state.affLora and loraOn):
                 requireResponse = True
-                self.uart.write(UART_COMMAND_QUATERNION)
+                uart.write(UART_COMMAND_QUATERNION)
             if (state.affCons and state.consoleConfig[CONSCONFIG_ANGULAR_SPEED]=='1') or (state.affGraph and (CHART_ANGULAR_SPEED in state.chartsConfig)) or (state.affInterface and userConnected) or (state.affLora and loraOn):
                 requireResponse = True
-                self.uart.write(UART_COMMAND_ANGULAR_SPEED)
+                uart.write(UART_COMMAND_ANGULAR_SPEED)
             if (state.affCons and state.consoleConfig[CONSCONFIG_ACCELERATION]=='1') or (state.affGraph and (CHART_ACCELERATION in state.chartsConfig)) or (state.affInterface and userConnected) or (state.affLora and loraOn):
                 requireResponse = True
-                self.uart.write(UART_COMMAND_ACCELERATION)
+                uart.write(UART_COMMAND_ACCELERATION)
             if (state.affCons and state.consoleConfig[CONSCONFIG_MAGNETIC_FIELD]=='1') or (state.affGraph and (CHART_MAGNETIC_FIELD in state.chartsConfig)) or (state.affInterface and userConnected) or (state.affLora and loraOn):
                 requireResponse = True
-                self.uart.write(UART_COMMAND_MAGNETIC_FIELD)
+                uart.write(UART_COMMAND_MAGNETIC_FIELD)
             if (state.affCons and state.consoleConfig[CONSCONFIG_LINEAR_ACCELERATION]=='1') or (state.affGraph and (CHART_LINEAR_ACCELERATION in state.chartsConfig)):
                 requireResponse = True
-                self.uart.write(UART_COMMAND_LINEAR_ACCELERATION)
+                uart.write(UART_COMMAND_LINEAR_ACCELERATION)
             if (state.affCons and state.consoleConfig[CONSCONFIG_GRAVITY]=='1') or (state.affGraph and (CHART_GRAVITY in state.chartsConfig)) or (state.affInterface and userConnected) or (state.affLora and loraOn):
                 requireResponse = True
-                self.uart.write(UART_COMMAND_GRAVITY_VECTOR)
+                uart.write(UART_COMMAND_GRAVITY_VECTOR)
             if (state.affCons and state.consoleConfig[CONSCONFIG_LUMINANCE]=='1') or (state.affGraph and (CHART_LUMINANCE in state.chartsConfig)) or (state.affLora and loraOn):
                 requireResponse = True
-                self.uart.write(UART_COMMAND_LUMINANCE)
+                uart.write(UART_COMMAND_LUMINANCE)
             if (state.affCons and state.consoleConfig[CONSCONFIG_GNSS]=='1') or (state.affLora and loraOn) or (state.affModeGnss):
                 requireResponse = True
-                self.uart.write(UART_COMMAND_GNSS)
+                uart.write(UART_COMMAND_GNSS)
             if (state.affCons and state.consoleConfig[CONSCONFIG_NMEA]=='1'):
                 requireResponse = True
-                self.uart.write(UART_COMMAND_NMEA)
+                uart.write(UART_COMMAND_NMEA)
 
         # Tell the UART the command sequence is over, only if something has been sent
         if requireResponse:
-            self.uart.write('Z')
+            uart.write('Z')
 
         # Drop all the display flags, since we just served them
         state.affCons = False
