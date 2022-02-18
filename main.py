@@ -114,4 +114,4 @@ while True:
     if(state.testMag > 0) and (state.testMag < 5):
         general.testMagneto(state.testMag)
 
-    general.udpServ.readPacket()
+    state.udpServ.readPacket()

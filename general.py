@@ -1,4 +1,3 @@
-from email.charset import add_alias
 import math
 from udpserver import UdpServer
 from eventsource import EventSource
@@ -1134,7 +1133,7 @@ def startTCPServer():
     Start the TCP Server
     """
     global tcpServ
-    tcpServ = tcpServer.TcpServer(cbList, eventList)
+    tcpServ = tcpServer.TcpServer(cbList,cbArgList,eventList)
     tcpServ.bind(config.localIP, config.tcpPort)
     tcpServ.listen()
 

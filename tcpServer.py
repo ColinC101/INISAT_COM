@@ -87,12 +87,12 @@ class TcpServer:
                 return sentBytes
 
             #If command, return command response
-        elif requestContent.lower() in self.cbList:
-                http_body = self.cbList[requestContent.lower()]()
+            elif requestContent.lower() in self.cbList:
+                    http_body = self.cbList[requestContent.lower()]()
 
-            #If command requesting args, retun command response
-        elif requestContent.lower() in self.cbArgList:
-                http_body = self.cbArgList[requestContent.lower()](requestParams)
+                #If command requesting args, retun command response
+            elif requestContent.lower() in self.cbArgList:
+                    http_body = self.cbArgList[requestContent.lower()](requestParams)
 
             #If file
             else:
