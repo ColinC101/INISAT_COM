@@ -106,6 +106,12 @@ while True:
     
     uartOBC.serialRead()
 
-    # TODO demag / magtest
+    # Start degaussing (if required)
+    if(state.deMag == 1):
+        general.demag()
+    
+    # Start a magneto-coupler test (if required)
+    if(state.testMag > 0) and (state.testMag < 5):
+        general.testMagneto(state.testMag)
 
     general.udpServ.readPacket()

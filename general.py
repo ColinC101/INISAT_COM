@@ -536,7 +536,6 @@ def cbMagt1():
     """
     Start test 1 for magneto-coupler
     """
-    testMagneto(1)
     state.testMag = 1
     return "Config magt1 recue .."
 
@@ -544,7 +543,6 @@ def cbMagt2():
     """
     Start test 2 for magneto-coupler
     """
-    testMagneto(2)
     state.testMag = 2
     return "Config magt2 recue .."
 
@@ -552,7 +550,6 @@ def cbMagt3():
     """
     Start test 3 for magneto-coupler
     """
-    testMagneto(3)
     state.testMag = 3
     return "Config magt3 recue .."
 
@@ -560,7 +557,6 @@ def cbMagt4():
     """
     Start test 4 for magneto-coupler
     """
-    testMagneto(4)
     state.testMag = 4
     return "Config magt4 recue .."
 
@@ -569,7 +565,6 @@ def cbStopMgt():
     Stop magneto-coupler test
     """
     state.testMag = 0
-    stopTestMag()
     return "Config stpmgt recue, veuillez attendre la fin .."
 
 def cbHelp():
@@ -961,7 +956,6 @@ def testMagneto(tstIdx):
     Test function for magneto-coupler
     @arg tstIdx (int) : Indicates the test to execute. Accepted values : 1,2,3,4
     """
-    state.testMag = 1
 
     Imax = 150
     t = 34
@@ -1030,16 +1024,6 @@ def testMagneto(tstIdx):
     print("Stop test magneto-coupler "+str(tstIdx))
     
     return "Test du magnéto-coupleur " + str(tstIdx) + " terminé !"
-
-
-def stopTestMag():
-    """
-    Stops all running tests on the magneto-couplers
-    """
-    state.testMag = 0
-    demagEvent.send("fct_fin", "B", utime.ticks_ms())
-    return "Arrêt du test ..."
-
 
 def demag():
     """
@@ -1170,7 +1154,7 @@ def toggleLora(paramStruct):
 
 
 ############################################
-#############   LED CONTROLS   #############
+#############   LEDs CONTROL   #############
 ############################################
 
 def blinkWiFiLED():
