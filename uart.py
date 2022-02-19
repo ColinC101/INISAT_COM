@@ -31,12 +31,13 @@ class OBCuart:
         """
         uart = state.ioctlObj.getObject(Ioctl.KEY_UART_OBC)
         buf = ''
-        if (uart.any()):
-            while True:
-                buf += uart.read(1)
-                if (buf[-1] == separator):
-                    buf = buf[:-1]
-                    break
+        while uart.any():
+            nwChar = uart.read(1)
+            print(str(nwChar))
+            buf += nwChar.decode("ascii")
+            if (buf[-1] == separator):
+                buf = buf[:-1]
+                break
         return buf
 
 
@@ -48,7 +49,9 @@ class OBCuart:
         if (uart.any()):
             # Reading the identifier of the command
             inChar = uart.read(uartCommandSize)
+            inChar = inChar.decode("ascii")
 
+            print("Char received:"+inChar)
             if (inChar == UART_COMMAND_AUTOTEST):
                 autotestData = {}
                 autotestData[JSON_AUTOTEST_WIFI_MODE] = state.wifiObj.wlan.mode()  # TODO: Change mode representation (see .ino)
@@ -259,9 +262,6 @@ class OBCuart:
                 if (state.affLora_ex and state.loraObj.getLoraStatus()):
                     state.loraObj.sendReadings(readingsResults)
 
-        else:
-            print("Nothing to read")
-
 
     def serialWrite(self):
         """
@@ -278,6 +278,7 @@ class OBCuart:
         if ((userConnected or loraOn or state.udpCom) and not(state.autoTesting)):
             if (state.affCons and state.consoleConfig[CONSCONFIG_EPS]=='1') or (state.affGraph and (CHART_EPS in state.chartsConfig)) or (state.affInterface and userConnected) or (state.affLora and loraOn):
                 requireResponse = True
+                print("Reading eps...")
                 uart.write(UART_COMMAND_EPS)
             if (state.affCons and state.consoleConfig[CONSCONFIG_TEMPERATURE]=='1') or (state.affGraph and (CHART_TEMPERATURE in state.chartsConfig)) or (state.affInterface and userConnected) or (state.affLora and loraOn):
                 requireResponse = True

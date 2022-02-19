@@ -52,7 +52,7 @@ class UdpServer:
             (bytesReceived,(lstRemote,lstRemotePort)) = self.udpSocket.recvfrom(UdpServer.RECEIVE_BUFFER_SZ)
         except OSError as err:
             if err.errno == 11:
-                print("No data")
+                pass
             return
         print("Data!")
     
