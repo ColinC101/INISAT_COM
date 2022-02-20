@@ -7,7 +7,7 @@ def init():
     global consoleConfig,autoTesting,consoleInterval,modeGnss,modeGnss_ex,camStatus,udpCom,testMag,ioctlObj,wifiObj,loraObj,gnssStartTime,chartsConfig,deMag,readingsJSON, affCons, affGraph, affInterface, affLora, affModeGnss, affCons_ex, affGraph_ex, affInterface_ex, affLora_ex,wifiLastBlink,loraLastBlink,lastOBCTime,lastUserTime,userConnected,lastLoRaTime,lastConsoleTime,lastChartsTime,chartsInterval,lastInterfaceTime,udpServ
 
     # Console configuration
-    consoleConfig = aliases.CONSOLE_CONFIG_DISABLED
+    consoleConfig = aliases.CONSOLE_CONFIG_DISABLED.copy()
 
     # Auto test status
     autoTesting = 0
@@ -47,7 +47,7 @@ def init():
     gnssStartTime = aliases.MODE_GNSS_FINISHED
 
     # Charts configuration
-    chartsConfig = aliases.CHARTS_CONFIG_DISABLED
+    chartsConfig = aliases.CHARTS_CONFIG_DISABLED.copy()
 
     # All the data retreived from OBC
     # Keys are listed in aliases.py under JSON ACCESS
