@@ -10,6 +10,7 @@ from aliases import *
 import wifi
 import LoRa
 import uping
+import json_ext
 
 class OBCuart:
     """
@@ -42,18 +43,15 @@ class OBCuart:
 
 
     def getGraphReading(self,pReadings):
-        rReadings = {}
+        """
+        Prepares the string containing charts data, which will be sent to the
+        browser's EventSource
+        pReadings: the dictionary of data read from OBC
+        """
         excludedFields = [JSON_EPS_VIN,JSON_EPS_VOUT,JSON_EPS_IIN,JSON_EPS_CHARGE_STATUS]
-        totalFields = range(1,38) # var37 is the last var
+        totalFields = list(map(lambda x: "var"+str(x),range(1,38))) # var37 is the last var
 
-        for j in totalFields:
-            crrField = "var"+str(j)
-            if not (crrField in excludedFields):
-                rReadings[crrField] = "" if not (crrField in pReadings) else pReadings[crrField]
-            else:
-                rReadings[crrField] = ""
-      
-        return json.dumps(rReadings) # sort_keys=True not supported
+        return json_ext.convertJSON(pReadings,totalFields,excludedFields)
     def serialRead(self):
         """
         Reads the command passed by the UART link and saves the data.
