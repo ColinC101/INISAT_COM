@@ -54,7 +54,7 @@ class TcpServer:
         splitRequest = str(request).split(" ")
 
         #Default response header
-        http_header = b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nConnection:close \r\n\r\n"
+        http_header = b"HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nConnection:close \r\n\r\n"
 
         #List of possible response file types
         mimeTypeList = [(".html", b"text/html"),
@@ -88,11 +88,11 @@ class TcpServer:
 
             #If command, return command response
             elif requestContent.lower() in self.cbList:
-                    http_body = self.cbList[requestContent.lower()]()
+                    http_body = bytes(self.cbList[requestContent.lower()](),"utf-8")
 
                 #If command requesting args, retun command response
             elif requestContent.lower() in self.cbArgList:
-                    http_body = self.cbArgList[requestContent.lower()](requestParams)
+                    http_body = bytes(self.cbArgList[requestContent.lower()](requestParams),"utf-8")
 
             #If file
             else:
