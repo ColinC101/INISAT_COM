@@ -9,6 +9,7 @@ import state
 from aliases import *
 import wifi
 import LoRa
+import uping
 
 class OBCuart:
     """
@@ -40,6 +41,19 @@ class OBCuart:
         return buf
 
 
+    def getGraphReading(self,pReadings):
+        rReadings = {}
+        excludedFields = [JSON_EPS_VIN,JSON_EPS_VOUT,JSON_EPS_IIN,JSON_EPS_CHARGE_STATUS]
+        totalFields = range(1,38) # var37 is the last var
+
+        for j in totalFields:
+            crrField = "var"+str(j)
+            if not (crrField in excludedFields):
+                rReadings[crrField] = "" if not (crrField in pReadings) else pReadings[crrField]
+            else:
+                rReadings[crrField] = ""
+      
+        return json.dumps(rReadings) # sort_keys=True not supported
     def serialRead(self):
         """
         Reads the command passed by the UART link and saves the data.
@@ -50,21 +64,30 @@ class OBCuart:
             inChar = uart.read(uartCommandSize)
             inChar = inChar.decode("ascii")
 
-            print("Char received:"+inChar)
             if (inChar == UART_COMMAND_AUTOTEST):
-                autotestData = {}
-                autotestData[JSON_AUTOTEST_WIFI_MODE] = state.wifiObj.wlan.mode()  # TODO: Change mode representation (see .ino)
-                autotestData[JSON_AUTOTEST_WIFI_POWER] = state.wifiObj.wlan.max_tx_power()/4
-                autotestData[JSON_AUTOTEST_WIFI_IP] = config.localIp
+                print("Autotest read")
+                # Autotest finished
+                state.autoTesting = 0
+                state.lastOBCTime = utime.ticks_ms()
 
-                autotestData[JSON_AUTOTEST_PING_CAMERA] = 0  # TODO: Implement a pingCamera function to get the status (see .ino)
+                autotestData = {}
+                autotestData[JSON_AUTOTEST_WIFI_MODE] = state.wifiObj.getMode()
+                try:
+                    autotestData[JSON_AUTOTEST_WIFI_POWER] = state.wifiObj.wlan.max_tx_power()/4
+                except:
+                    autotestData[JSON_AUTOTEST_WIFI_POWER] = "unknown"
+
+                autotestData[JSON_AUTOTEST_WIFI_IP] = config.localIP
+
+                pingRes = uping.ping(config.CAMERA_IP,count=1,quiet=True,timeout=1000)
+                autotestData[JSON_AUTOTEST_PING_CAMERA] = "0" if pingRes == None else ("1"+str(pingRes))
                 
                 autotestData[JSON_AUTOTEST_LORA_POWER] = state.loraObj.lora.stats()[6]
-                autotestData[JSON_AUTOTEST_LORA_SPREADINGFACTOR] = state.loraObj.LoRa.lora.sf()
-                autotestData[JSON_AUTOTEST_LORA_BANDWIDTH] = state.loraObj.LoRa.lora.bandwidth()
-                autotestData[JSON_AUTOTEST_LORA_FREQUENCY] = state.loraObj.LoRa.lora.frequency()
-                autotestData[JSON_AUTOTEST_LORA_CODINGRATE] = state.loraObj.LoRa.lora.coding_rate()
-                autotestData[JSON_AUTOTEST_LORA_PREAMBLE] = state.loraObj.LoRa.lora.preamble()
+                autotestData[JSON_AUTOTEST_LORA_SPREADINGFACTOR] = state.loraObj.lora.sf()
+                autotestData[JSON_AUTOTEST_LORA_BANDWIDTH] = state.loraObj.lora.bandwidth()
+                autotestData[JSON_AUTOTEST_LORA_FREQUENCY] = state.loraObj.lora.frequency()
+                autotestData[JSON_AUTOTEST_LORA_CODINGRATE] = state.loraObj.lora.coding_rate()
+                autotestData[JSON_AUTOTEST_LORA_PREAMBLE] = state.loraObj.lora.preamble()
 
                 # Fillers for retro-compatibility
                 autotestData[JSON_AUTOTEST_VOID1] = ""
@@ -202,16 +225,16 @@ class OBCuart:
                 
             elif (inChar == UART_COMMAND_NMEA):
                 tmpData = self.__readSlot__()
-                sizeSubstring = len(tmpData)/9
-                state.readingsJSON[JSON_NMEA_1] = tmpData[0, sizeSubstring]
-                state.readingsJSON[JSON_NMEA_2] = tmpData[sizeSubstring, 2*sizeSubstring]
-                state.readingsJSON[JSON_NMEA_3] = tmpData[2*sizeSubstring, 3*sizeSubstring]
-                state.readingsJSON[JSON_NMEA_4] = tmpData[3*sizeSubstring, 4*sizeSubstring]
-                state.readingsJSON[JSON_NMEA_5] = tmpData[4*sizeSubstring, 5*sizeSubstring]
-                state.readingsJSON[JSON_NMEA_6] = tmpData[5*sizeSubstring, 6*sizeSubstring]
-                state.readingsJSON[JSON_NMEA_7] = tmpData[6*sizeSubstring, 7*sizeSubstring]
-                state.readingsJSON[JSON_NMEA_8] = tmpData[7*sizeSubstring, 8*sizeSubstring]
-                state.readingsJSON[JSON_NMEA_9] = tmpData[8*sizeSubstring, len(tmpData)]
+                sizeSubstring = int(len(tmpData)/9)
+                state.readingsJSON[JSON_NMEA_1] = tmpData[0:sizeSubstring]
+                state.readingsJSON[JSON_NMEA_2] = tmpData[sizeSubstring: 2*sizeSubstring]
+                state.readingsJSON[JSON_NMEA_3] = tmpData[2*sizeSubstring: 3*sizeSubstring]
+                state.readingsJSON[JSON_NMEA_4] = tmpData[3*sizeSubstring: 4*sizeSubstring]
+                state.readingsJSON[JSON_NMEA_5] = tmpData[4*sizeSubstring: 5*sizeSubstring]
+                state.readingsJSON[JSON_NMEA_6] = tmpData[5*sizeSubstring: 6*sizeSubstring]
+                state.readingsJSON[JSON_NMEA_7] = tmpData[6*sizeSubstring: 7*sizeSubstring]
+                state.readingsJSON[JSON_NMEA_8] = tmpData[7*sizeSubstring: 8*sizeSubstring]
+                state.readingsJSON[JSON_NMEA_9] = tmpData[8*sizeSubstring: len(tmpData)]
                 self.readingsUDP[CONSCONFIG_NMEA] = UART_COMMAND_NMEA + tmpData + '@'
                 
             elif (inChar == UART_COMMAND_NMEA_NO_DATA):
@@ -230,6 +253,7 @@ class OBCuart:
 
             elif (inChar == UART_COMMAND_END):
                 # Conversion towards JSON string
+                state.readingsJSON[JSON_CONS_CONFIG] = "".join(state.consoleConfig)
                 readingsResults = json.dumps(state.readingsJSON)
 
                 # Sending data to the console
@@ -244,8 +268,11 @@ class OBCuart:
 
                 # Sending data to the charts
                 if state.affGraph_ex:
-                    general.graphEvent.send("CAP_readings2",readingsResults, utime.ticks_ms())
+                    print("Graph event")
+                    general.graphEvent.send("CAP_readings2",self.getGraphReading(state.readingsJSON), utime.ticks_ms())
                     state.affGraph_ex = 0
+                else:
+                    print("No need to aff graph")
 
                 # Sending data to the web interface
                 if state.affInterface_ex:
@@ -332,4 +359,5 @@ class OBCuart:
         
         # If no chart is activated, we drop the flag
         if (state.chartsConfig == CHARTS_CONFIG_DISABLED):
+            print("chart config empty, cleaning")
             state.affGraph_ex = False
