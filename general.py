@@ -220,10 +220,10 @@ def cbGNSSon():
     uartFlush()
 
     # No console information fields
-    state.consoleConfig = aliases.CONSOLE_CONFIG_DISABLED
+    state.consoleConfig = aliases.CONSOLE_CONFIG_DISABLED.copy()
 
     # No charts
-    state.chartsConfig = aliases.CHARTS_CONFIG_DISABLED
+    state.chartsConfig = aliases.CHARTS_CONFIG_DISABLED.copy()
 
     try:
         with open("web/Trajectoire_GNSS.txt", 'w') as infile:
@@ -234,12 +234,39 @@ def cbGNSSon():
 
     return getState()
 
+def cbWebGNSSon(arg):
+    """
+    Enable GNSS (for web interface)
+    @arg arg(str) : the DateTime of next GNSS collection
+    """
+    state.modeGnss = aliases.MODE_GNSS_RUNNING
+    state.gnssStartTime = utime.ticks_ms()
+    uartFlush()
+    state.autoTesting = 1 # Actually no autotest, but disables console and charts data exchanges while GNSS is running
+    try:
+        with open("web/Trajectoire_GNSS.txt", 'w') as infile:
+            infile.write(arg)
+            infile.write(" ")
+            print("Commande GNSS recue et fichier .txt cree ... ")
+    except OSError:
+        print("Echec lors de la creation du fichier Trajectoire_GNSS")
+
+    return "Releve Trajectoire lancée !"
+
 def cbGNSSoff():
     """
     Disable GNSS
     """
     state.modeGnss = aliases.MODE_GNSS_STOPPED
     return getState()
+
+def cbWebGNSSoff():
+    """
+    Disable GNSS (for web interface)
+    """
+    state.modeGnss = aliases.MODE_GNSS_STOPPED
+    state.autoTesting = 0
+    return "Stop Trajectoire lancée !"
 
 def cbGNSSsave():
     """
@@ -249,6 +276,12 @@ def cbGNSSsave():
     gnssTransmitUDP()
     return getState()
 
+def cbWebGNSSsave():
+    """
+    Save GNSS data (for web interface)
+    """
+    state.modeGnss = aliases.MODE_GNSS_FINISHED
+    return "Save Trajectoire lancée !"
 
 ########   RAW UDP COMMANDS   ########
 
@@ -496,14 +529,14 @@ def cbAllOn():
     """
     Activate all logs
     """
-    state.consoleConfig = aliases.CONSOLE_CONFIG_ENABLED
+    state.consoleConfig = aliases.CONSOLE_CONFIG_ENABLED.copy()
     return "Config allon recue .."
 
 def cbAllOff():
     """
     Deactivate all logs
     """
-    state.consoleConfig = aliases.CONSOLE_CONFIG_DISABLED
+    state.consoleConfig = aliases.CONSOLE_CONFIG_DISABLED.copy()
     return "Config alloff recue .."
 
 def cbLoraState():
@@ -602,7 +635,7 @@ def cbUser():
     """
     state.lastUserTime = utime.ticks_ms()
     print("Nouveau user défini")
-    return "Nouveau user défini"
+    return "OK"
 
 def cbOuvPage():
     """
@@ -611,7 +644,7 @@ def cbOuvPage():
 
     state.userConnected = 1
     state.lastUserTime = utime.ticks_ms()
-    state.chartsConfig = aliases.CHARTS_CONFIG_DISABLED
+    state.chartsConfig = aliases.CHARTS_CONFIG_DISABLED.copy()
 
     state.affInterface_ex = 1
     state.affCons_ex = 0
@@ -634,7 +667,44 @@ def cbOuvPage():
     return json.dumps(initParams)
 
 
-########   UDP COMMANDS WITH ARGS   ########
+########   TCP/UDP COMMANDS WITH ARGS   ########
+def cbAngCouple(args):
+    """
+    Change the satellite angle with magneto-couplers (for web interface)
+    """
+    if len(args) != 1:
+        return "Command ERROR !"
+    magnetoRotate(float(args[0]))
+
+    return "Commande lancée pour : " + args[0] + "°."
+
+def cbRoue(args):
+    """
+    Set the inertia wheel speed (for web server interface)
+    @args (list of string): should contain 1 string with the following format : '(a|h|s)intvalue'
+    such that 0<=intvalue<=100
+    """
+    if len(args) != 1:
+        return "Command ERROR !"
+
+    dirSpeed = args[0]
+
+    if len(dirSpeed) == 0:
+        return "Command ERROR !"
+    else:
+        if len(dirSpeed)<2 and dirSpeed[0].lower()!="s":
+            return "Command ERROR !"
+        elif len(dirSpeed)<2:
+            # Stop the inertia wheel
+            cbRiRot(("s","0"))
+            return "Commande lancée pour : 0%, sens : 0"
+
+    wDirection = dirSpeed[0].lower()
+    wSpeed = dirSpeed[1:]
+        
+    cbRiRot((wDirection,wSpeed))
+    return "Commande lancée pour : " + str(wSpeed) + " %, sens : " + wDirection
+
 
 def cbTCons(args):
     """
@@ -894,7 +964,11 @@ def setInertiaWheelSpeed(speed,dir):
     state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1.0)
 
     # Set the new direction for rotation
-    state.ioctlObj.getObject(Ioctl.KEY_DIR_X).value(rotationDirMap[dir])
+    if (rotationDirMap[dir]!=0) and (rotationDirMap[dir]!=1):
+        # Probably stop command, so we don't care about new rotation direction
+        state.ioctlObj.getObject(Ioctl.KEY_DIR_X).value(0)
+    else:
+        state.ioctlObj.getObject(Ioctl.KEY_DIR_X).value(rotationDirMap[dir])
 
     # Set new speed for inertial wheel
     state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1-speed)
@@ -1102,7 +1176,15 @@ cbList = {"none":cbNone,"stopudp":cbStopUDP,"beginudp":cbBeginUDP,"state":cbStat
 "lumioff":cbLumiOff,"locon":cbLocOn,"locoff":cbLocOff,"nmeaon":cbNMEAon,"nmeaoff":cbNMEAoff,
 "allon":cbAllOn,"alloff":cbAllOff,"lorastate":cbLoraState,"camstate":cbCameraState,"dmagon":cbDemagOn,
 "magt1":cbMagt1,"mcamoffagt2":cbMagt2,"magt3":cbMagt3,"magt4":cbMagt4,"stpmgt":cbStopMgt,"help":cbHelp,
-"camon":cbCamOn,"camoff":cbCamOff, "ouvpage": cbOuvPage}
+"camon":cbCamOn,"camoff":cbCamOff}
+
+cbWebServer = {"ouvpage":cbOuvPage,"loraoff":cbLoRaOff,"loraon":cbLoRaOn,"camoff":cbCamOff,"camon":cbCamOn,
+"demag":cbDemagOn,"tst1":cbMagt1,"tst2":cbMagt2,"tst3":cbMagt3,"tst4":cbMagt4,"tststp":cbStopMgt,
+"autotest":cbAutoTest,"user":cbUser,"stopgnss":cbWebGNSSoff,"savegnss":cbWebGNSSsave} 
+
+cbWebServerArg = {"t_console":cbTCons,"t_graph":cbTGraph,"ang_couple":cbAngCouple,"roue":cbRoue,
+"cons_config":cbConsConfig,"configgraph1":cbGraph1,"configgraph2":cbGraph2,"configgraph3":cbGraph3,
+"configgraph4":cbGraph4,"configgraph5":cbGraph5,"configgraph6":cbGraph6}
 
 cbArgList = {"tcons":cbTCons,"rirot":cbRiRot,"mgrot":cbMgRot}
 
@@ -1133,7 +1215,7 @@ def startTCPServer():
     Start the TCP Server
     """
     global tcpServ
-    tcpServ = tcpServer.TcpServer(cbList,cbArgList,eventList)
+    tcpServ = tcpServer.TcpServer(cbWebServer,cbWebServerArg,eventList)
     tcpServ.bind(config.localIP, config.tcpPort)
     tcpServ.listen()
 
