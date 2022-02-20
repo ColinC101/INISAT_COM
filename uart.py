@@ -41,6 +41,21 @@ class OBCuart:
                 break
         return buf
 
+    def getLoRaReading(self,pReadings):
+        """
+        Prepares the string containing data that will be transmitted on the LoRa link.
+        pReadings: the dictionary of data read from OBC
+        """
+        excludedFields = [JSON_EPS_VIN,JSON_EPS_VOUT,JSON_EPS_IIN,JSON_LINEARACCELERATION_X,
+        JSON_LINEARACCELERATION_Y,JSON_LINEARACCELERATION_Z]
+        totalFields = list(map(lambda x: "var"+str(x),range(1,42))) # var41 is the last var 
+                                                                    # that has to be sent
+        
+        for exclK in excludedFields:
+            # Remove unwanted keys
+            totalFields.remove(exclK)
+
+        return json_ext.convertJSON(pReadings,totalFields,[])
 
     def getGraphReading(self,pReadings):
         """
@@ -294,7 +309,7 @@ class OBCuart:
 
                 # Transmitting data through LoRa link
                 if (state.affLora_ex and state.loraObj.getLoraStatus()):
-                    state.loraObj.sendReadings(readingsResults)
+                    state.loraObj.sendReadings(self.getLoRaReading(state.readingsJSON))
                     state.affLora_ex = False
 
 

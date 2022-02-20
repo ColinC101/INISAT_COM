@@ -4,6 +4,7 @@ import socket
 import pycom
 import config
 import time
+import utime
 
 """
 For complete documentation, see :
@@ -80,9 +81,18 @@ class LoraObject:
         Parameter 'data' must be a string
         """
         # Creating communication Socket
-        #s = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
-        #s.send(data)
-        #s.close()
+        s = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
+        
+        data2send = data
+        while len(data2send) > config.LORA_MAX_PACKET_SZ:
+            s.send(data2send[:config.LORA_MAX_PACKET_SZ])
+            utime.sleep_ms(100)
+            data2send = data2send[config.LORA_MAX_PACKET_SZ:]
+
+        if len(data2send)>0:
+            s.send(data2send)
+            
+        s.close()
 
 
 

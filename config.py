@@ -90,6 +90,8 @@ CAMERA_IP = "192.168.4.2"
 #######################  LoRa CONFIG     #######################
 ################################################################
 
+LORA_MAX_PACKET_SZ = 255
+
 loraMode = LoRa.LORA
 loraRegion = LoRa.EU868  # Europe
 
