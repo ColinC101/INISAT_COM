@@ -103,10 +103,12 @@ class OBCuart:
                 # Sending the data through UDP, only if needed
                 if (state.udpCom):
                     replyBuffer = "A"
-                    for v in autotestData.values():
-                        replyBuffer += v
+                    # var14 is the last autotest variable, so range(1,15) is fine to
+                    # get [1, 2, 3, ..., 14]
+                    for k in list(map(lambda x: "var"+str(x),range(1,15))):
+                        replyBuffer += "" if not (k in autotestData) else str(autotestData[k])
                         replyBuffer += "#"
-                    replyBuffer = replyBuffer[:-1] + "@"
+                    replyBuffer = replyBuffer[:-1] + "@\r\n"
                     state.udpServ.sendToLastRemote(replyBuffer)
             
 
@@ -254,23 +256,29 @@ class OBCuart:
                 state.readingsJSON[JSON_CONS_CONFIG] = "".join(state.consoleConfig)
                 readingsResults = json.dumps(state.readingsJSON)
 
-                # Sending data to the console
-                if state.affCons_ex:
-                    general.consoleEvent.send("CAP_readings",readingsResults, utime.ticks_ms())
-                    print("Event 'CAP_readings' sent")
-                    # Sending the data through UDP link too, only if needed
-                    if (state.udpCom):
-                        for v in self.readingsUDP.values():
-                            state.udpServ.sendToLastRemote(v)
-                    state.affCons_ex = 0
+                if state.modeGnss != MODE_GNSS_RUNNING:
+                    # Check that GNSS mode is disabled before triggering console and charts events
 
-                # Sending data to the charts
-                if state.affGraph_ex:
-                    print("Graph event")
-                    general.graphEvent.send("CAP_readings2",self.getGraphReading(state.readingsJSON), utime.ticks_ms())
-                    state.affGraph_ex = 0
-                else:
-                    print("No need to aff graph")
+                    # Sending data to the console
+                    if state.affCons_ex:
+                        general.consoleEvent.send("CAP_readings",readingsResults, utime.ticks_ms())
+                        print("Event 'CAP_readings' sent")
+                        # Sending the data through UDP link too, only if needed
+                        if (state.udpCom):
+                            for idx,consoleCfg in enumerate(state.consoleConfig):
+                                if consoleCfg == "1" and idx in self.readingsUDP:
+                                    # This parameter from console config is enabled, so we need to 
+                                    # send it
+                                    state.udpServ.sendToLastRemote(self.readingsUDP[idx])           
+                        state.affCons_ex = 0
+
+                    # Sending data to the charts
+                    if state.affGraph_ex:
+                        print("Graph event")
+                        general.graphEvent.send("CAP_readings2",self.getGraphReading(state.readingsJSON), utime.ticks_ms())
+                        state.affGraph_ex = 0
+                    else:
+                        print("No need to aff graph")
 
                 # Sending data to the web interface
                 if state.affInterface_ex:
@@ -279,12 +287,15 @@ class OBCuart:
 
                 # Saving GNSS data to a text file
                 if state.modeGnss_ex:
-                    GNSS_string = state.readingsJSON[JSON_GNSS_LATITUDE] + " , " + state.readingsJSON[JSON_GNSS_LONGITUDE]
+                    print("GNSS DATA added")
+                    GNSS_string = state.readingsJSON[JSON_GNSS_LATITUDE] + " , " + state.readingsJSON[JSON_GNSS_LONGITUDE] + "\r\n"
                     general.gnssSaveFile(GNSS_string)
+                    state.modeGnss_ex = False
 
                 # Transmitting data through LoRa link
                 if (state.affLora_ex and state.loraObj.getLoraStatus()):
                     state.loraObj.sendReadings(readingsResults)
+                    state.affLora_ex = False
 
 
     def serialWrite(self):
@@ -299,10 +310,9 @@ class OBCuart:
 
         uart = state.ioctlObj.getObject(Ioctl.KEY_UART_OBC)
 
-        if ((userConnected or loraOn or state.udpCom) and not(state.autoTesting)):
+        if ((userConnected or loraOn or state.udpCom) and (not(state.autoTesting)) and (state.modeGnss != MODE_GNSS_RUNNING)):
             if (state.affCons and state.consoleConfig[CONSCONFIG_EPS]=='1') or (state.affGraph and (CHART_EPS in state.chartsConfig)) or (state.affInterface and userConnected) or (state.affLora and loraOn):
                 requireResponse = True
-                print("Reading eps...")
                 uart.write(UART_COMMAND_EPS)
             if (state.affCons and state.consoleConfig[CONSCONFIG_TEMPERATURE]=='1') or (state.affGraph and (CHART_TEMPERATURE in state.chartsConfig)) or (state.affInterface and userConnected) or (state.affLora and loraOn):
                 requireResponse = True
@@ -343,6 +353,10 @@ class OBCuart:
             if (state.affCons and state.consoleConfig[CONSCONFIG_NMEA]=='1'):
                 requireResponse = True
                 uart.write(UART_COMMAND_NMEA)
+        elif (state.modeGnss == MODE_GNSS_RUNNING) and (not state.autoTesting):
+            if (state.affLora and loraOn) or (state.affModeGnss):
+                requireResponse = True
+                uart.write(UART_COMMAND_GNSS)
 
         # Tell the UART the command sequence is over, only if something has been sent
         if requireResponse:
@@ -357,5 +371,4 @@ class OBCuart:
         
         # If no chart is activated, we drop the flag
         if (state.chartsConfig == CHARTS_CONFIG_DISABLED):
-            print("chart config empty, cleaning")
             state.affGraph_ex = False

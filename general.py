@@ -246,7 +246,6 @@ def cbWebGNSSon(arg):
     state.modeGnss = aliases.MODE_GNSS_RUNNING
     state.gnssStartTime = utime.ticks_ms()
     uartFlush()
-    state.autoTesting = 1 # Actually no autotest, but disables console and charts data exchanges while GNSS is running
     try:
         with open("web/Trajectoire_GNSS.txt", 'w') as infile:
             infile.write(dateTime)
@@ -269,7 +268,6 @@ def cbWebGNSSoff():
     Disable GNSS (for web interface)
     """
     state.modeGnss = aliases.MODE_GNSS_STOPPED
-    state.autoTesting = 0
     return "Stop Trajectoire lancée !"
 
 def cbGNSSsave():
