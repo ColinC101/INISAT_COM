@@ -74,7 +74,7 @@ class TcpServer:
             if "?" in requestContent: #If request has parameters
                 splitRequestContent = requestContent.split("?")
                 requestContent = splitRequestContent[0]
-                for i in splitRequestContent[1:].split("&"):
+                for i in splitRequestContent[1].split("&"):
                     requestParams.append(i.split("=")[1])
 
             #Check the type of the request
