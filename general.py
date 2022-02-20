@@ -239,13 +239,17 @@ def cbWebGNSSon(arg):
     Enable GNSS (for web interface)
     @arg arg(str) : the DateTime of next GNSS collection
     """
+    if len(arg) != 1:
+        return "Command ERROR!"
+
+    dateTime = arg[0]
     state.modeGnss = aliases.MODE_GNSS_RUNNING
     state.gnssStartTime = utime.ticks_ms()
     uartFlush()
     state.autoTesting = 1 # Actually no autotest, but disables console and charts data exchanges while GNSS is running
     try:
         with open("web/Trajectoire_GNSS.txt", 'w') as infile:
-            infile.write(arg)
+            infile.write(dateTime)
             infile.write(" ")
             print("Commande GNSS recue et fichier .txt cree ... ")
     except OSError:
@@ -737,7 +741,7 @@ def cbTGraph(args):
         return "Veuillez choisir une periode entre 5 et 3600 secondes !"
 
     if (periodValue>4 and periodValue<3601):
-        state.graphInterval = periodValue * 1000
+        state.chartsInterval = periodValue * 1000
         return "Config tgraph+"+args[0]+" recue .."
 
     return "Veuillez choisir une periode entre 5 et 3600 secondes !"
@@ -1182,7 +1186,7 @@ cbWebServer = {"ouvpage":cbOuvPage,"loraoff":cbLoRaOff,"loraon":cbLoRaOn,"camoff
 "demag":cbDemagOn,"tst1":cbMagt1,"tst2":cbMagt2,"tst3":cbMagt3,"tst4":cbMagt4,"tststp":cbStopMgt,
 "autotest":cbAutoTest,"user":cbUser,"stopgnss":cbWebGNSSoff,"savegnss":cbWebGNSSsave} 
 
-cbWebServerArg = {"t_console":cbTCons,"t_graph":cbTGraph,"ang_couple":cbAngCouple,"roue":cbRoue,
+cbWebServerArg = {"startgnss":cbWebGNSSon,"t_console":cbTCons,"t_graph":cbTGraph,"ang_couple":cbAngCouple,"roue":cbRoue,
 "cons_config":cbConsConfig,"configgraph1":cbGraph1,"configgraph2":cbGraph2,"configgraph3":cbGraph3,
 "configgraph4":cbGraph4,"configgraph5":cbGraph5,"configgraph6":cbGraph6}
 
