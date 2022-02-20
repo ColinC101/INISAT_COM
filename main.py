@@ -63,8 +63,8 @@ while True:
         if ((utime.ticks_ms() - state.lastUserTime) > config.USER_SIGNALING_INTERVAL) and (state.udpCom ==False):
             # Web interface user is diconnected
             state.userConnected = 0
-            state.consoleConfig = aliases.CONSOLE_CONFIG_DISABLED
-            state.chartsConfig = aliases.CHARTS_CONFIG_DISABLED
+            state.consoleConfig = aliases.CONSOLE_CONFIG_DISABLED.copy()
+            state.chartsConfig = aliases.CHARTS_CONFIG_DISABLED.copy()
             print("User disconnected from web interface")
             state.lastUserTime = utime.ticks_ms()
         
