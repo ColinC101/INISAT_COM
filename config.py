@@ -51,6 +51,12 @@ maxFailedConnection = 5
 # IP of server
 localIP = "192.168.4.1"
 
+# Mask of the subnet
+localMask = "255.255.255.0"
+
+# Address of the DNS
+localDNS = "8.8.8.8"
+
 # Wifi mode (AP, STA or STA_AP)
 wifiMode = WLAN.AP 
 
@@ -74,6 +80,11 @@ wifiMaxTxPower = 19.5
 
 # Blink period for WiFi LED 
 WIFI_LED_BLINK_CYCLE = 3000
+
+################################################################
+#####################  CAMERA CONFIG     #######################
+################################################################
+CAMERA_IP = "192.168.4.2"
 
 ################################################################
 #######################  LoRa CONFIG     #######################

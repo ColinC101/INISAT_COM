@@ -24,7 +24,7 @@ class WifiObject:
         self.wlan.init(mode=config.wifiMode, ssid=config.wifiSsid, auth=config.wifiAuth)
         print("WLAN initialized.")
         # Config in AP mode, with DHCP auto-negociation
-        self.wlan.ifconfig(id=1)
+        self.wlan.ifconfig(id=1,config=(config.localIP,config.localMask,config.localIP,config.localDNS))
         time.sleep(1)
         print("WiFi ready.")
 
@@ -74,3 +74,17 @@ class WifiObject:
             except:
                 print("MAC: ??.??.??.??.??.?? |IP: " + i.IP)
         return deviceList
+
+    def getMode(self):
+        """
+        Return a string reprensting the current WiFi mode
+        """
+        crMode = self.wlan.mode()
+        if crMode == WLAN.STA:
+            return "WIFI_MODE_STA"
+        elif crMode == WLAN.AP:
+            return "WIFI_MODE_AP"
+        elif crMode == WLAN.STA_AP:
+            return "WIFI_MODE_AP_STA"
+        else:
+            return "UNKNOWN"
