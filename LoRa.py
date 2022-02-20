@@ -80,9 +80,9 @@ class LoraObject:
         Parameter 'data' must be a string
         """
         # Creating communication Socket
-        s = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
-        s.send(data)
-        s.close()
+        #s = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
+        #s.send(data)
+        #s.close()
 
 
 
