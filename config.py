@@ -6,12 +6,12 @@ from network import LoRa
 #######################  HARDWARE CONFIG   #####################
 ################################################################
 
-# Inertia wheel / magneto coupler X 
+# Inertia wheel / magneto coupler X
 PIN_PWM_X = 'P8'
 PIN_DIR_X = 'P9'
 
 
-# Magneto coupler Y 
+# Magneto coupler Y
 PIN_PWM_Y = 'P10'
 PIN_DIR_Y = 'P11'
 
@@ -37,7 +37,7 @@ UART_OBC_BAUD = 115200
 tcpPort = 8080
 
 # Reception buffer for TCP requests
-tcpBufferSize = 4096 
+tcpBufferSize = 4096
 
 # Backlog of Web Server socket
 maxFailedConnection = 5
@@ -58,27 +58,27 @@ localMask = "255.255.255.0"
 localDNS = "8.8.8.8"
 
 # Wifi mode (AP, STA or STA_AP)
-wifiMode = WLAN.AP 
+wifiMode = WLAN.AP
 
 # SSID of Wifi AP
-wifiSsid = 'INISAT' 
+wifiSsid = 'INISAT'
 
 # Authentification key for Wifi AP
-wifiAuth=(WLAN.WPA2, "123456789") 
+wifiAuth=(WLAN.WPA2, "123456789")
 
 # Channel for Wifi connection
-wifiChannel = 1 
+wifiChannel = 1
 
 # Select between integrated and external antenna (WLAN.EXT_ANT)
-wifiAntenna = WLAN.INT_ANT 
+wifiAntenna = WLAN.INT_ANT
 
 # Bandwith to use for WiFi, 20MHz or 40MHz
-# wifiBandwidth = WLAN.HT40 
+# wifiBandwidth = WLAN.HT40
 
 # WiFi power in dBm
-wifiMaxTxPower = 19.5 
+wifiMaxTxPower = 19.5
 
-# Blink period for WiFi LED 
+# Blink period for WiFi LED
 WIFI_LED_BLINK_CYCLE = 3000
 
 ################################################################
@@ -129,7 +129,7 @@ UDP_PORT = 9991
 OBC_INTERVAL = 1000
 
 # 5min30, time window for connected user (with '/ouvPage' or '/user' request)
-USER_SIGNALING_INTERVAL = 330000 
+USER_SIGNALING_INTERVAL = 330000
 
 # LoRa interval for requests
 LORA_INTERVAL = 90000
@@ -139,6 +139,9 @@ INTERFACE_INTERVAL = 60000
 
 # Interval for GNSS requests
 GNSS_INTERVAL = 2000
+
+#Default console and help language
+DEFAULT_LANG = "fr"
 
 
 ################################################################

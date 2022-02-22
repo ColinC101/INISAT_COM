@@ -1,0 +1,8 @@
+{
+	"user_disconnected": "L'utilisateur s'est déconnecté de l'interface web.",
+	"wifi_init": "Initialisation du point d'accès WiFi ...",
+	"wlan_init": "WLAN initialisé.",
+	"wifi_ready": "WiFi prêt.",
+	"wifi_desinit": "WiFi désactivé.",
+	"con_devices": "Appareils connectés :"
+}

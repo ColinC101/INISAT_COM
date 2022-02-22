@@ -20,13 +20,13 @@ class WifiObject:
         Initiates the WiFi communication.
         Parameters (mode, ssid, auth) can be modified in config.py file
         """
-        print("Initializing WiFi Access Point ...")
+        print(state.lang["wifi_init"])
         self.wlan.init(mode=config.wifiMode, ssid=config.wifiSsid, auth=config.wifiAuth)
-        print("WLAN initialized.")
+        print(state.lang["wlan_init"])
         # Config in AP mode, with DHCP auto-negociation
         self.wlan.ifconfig(id=1,config=(config.localIP,config.localMask,config.localIP,config.localDNS))
         time.sleep(1)
-        print("WiFi ready.")
+        print(state.lang["wifi_ready"])
 
 
     def disableWifi(self):
@@ -34,7 +34,7 @@ class WifiObject:
         Disables the WiFi communication.
         """
         self.wlan.deinit()
-        print("WiFi disabled.")
+        print(state.lang["wifi_desinit"])
 
 
     def convertTxPower(dBmValue):
@@ -44,7 +44,7 @@ class WifiObject:
         output power in 0.25dBm increments." (Pycom doc)
         """
         return int(dBmValue * 4);
-        
+
 
     def macDecoder(macAddr):
         """
@@ -67,7 +67,7 @@ class WifiObject:
                 deviceList (list): A list of MAC/IP addresses of connected devices
         """
         deviceList = self.wlan.ap_tcpip_sta_list()
-        print("Connected devices :")
+        print(state.lang["con_devices"])
         for i in (deviceList):
             try:
                 print("MAC: " + self.macDecoder(i.MAC) + "|IP : " + i.IP)

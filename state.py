@@ -14,7 +14,7 @@ def init():
 
     # Console updating interval (ms)
     consoleInterval = 5000
-    
+
     # Charts updating interval (ms)
     chartsInterval = 5000
 
@@ -63,7 +63,7 @@ def init():
     affGraph_ex = False
     affInterface_ex = False
     affLora_ex = False
-    
+
     # Time in ms indicating the last blinking instant for WiFi LED
     wifiLastBlink = 0
 
@@ -95,3 +95,9 @@ def init():
 
     # UDP server
     udpServ = None
+
+    #Current interface language
+    curLang = DEFAULT_LANG
+
+    #Current language structure
+    lang = None

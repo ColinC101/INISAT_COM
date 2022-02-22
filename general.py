@@ -121,6 +121,13 @@ def uartFlush():
     """
     state.ioctlObj.getObject(Ioctl.KEY_UART_OBC).wait_tx_done(1000)
 
+def updateLang():
+    with open(state.curLang + ".json", 'r') as infile:
+        state.lang = json.loads(infile.read())
+        infile.close()
+        print(state.lang[update_lang))]
+
+
 
 
 ############################################
@@ -703,7 +710,7 @@ def cbRoue(args):
 
     wDirection = dirSpeed[0].lower()
     wSpeed = dirSpeed[1:]
-        
+
     cbRiRot((wDirection,wSpeed))
     return "Commande lancée pour : " + str(wSpeed) + " %, sens : " + wDirection
 
@@ -1182,7 +1189,7 @@ cbList = {"none":cbNone,"stopudp":cbStopUDP,"beginudp":cbBeginUDP,"state":cbStat
 
 cbWebServer = {"ouvpage":cbOuvPage,"loraoff":cbLoRaOff,"loraon":cbLoRaOn,"camoff":cbCamOff,"camon":cbCamOn,
 "demag":cbDemagOn,"tst1":cbMagt1,"tst2":cbMagt2,"tst3":cbMagt3,"tst4":cbMagt4,"tststp":cbStopMgt,
-"autotest":cbAutoTest,"user":cbUser,"stopgnss":cbWebGNSSoff,"savegnss":cbWebGNSSsave} 
+"autotest":cbAutoTest,"user":cbUser,"stopgnss":cbWebGNSSoff,"savegnss":cbWebGNSSsave}
 
 cbWebServerArg = {"startgnss":cbWebGNSSon,"t_console":cbTCons,"t_graph":cbTGraph,"ang_couple":cbAngCouple,"roue":cbRoue,
 "cons_config":cbConsConfig,"configgraph1":cbGraph1,"configgraph2":cbGraph2,"configgraph3":cbGraph3,
