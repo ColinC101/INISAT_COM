@@ -32,8 +32,14 @@ class TcpServer:
     def __accept_loop__(self):
         while True:
             try:
+                if config.DEBUG_TCP:
+                    print("[TCP] Waiting for connection")
                 (tcpClientsocket, tcpAddress) = self.tcpSocket.accept()
+                if config.DEBUG_TCP:
+                    print("[TCP] Connection accepted !")
                 self.readRequest(tcpClientsocket)
+                if config.DEBUG_TCP:
+                    print("[TCP] Request processed !")
             except OSError as err:
                 if err.errno==114:
                     print("Connexion reset")

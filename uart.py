@@ -297,6 +297,7 @@ class OBCuart:
 
                 # Sending data to the web interface
                 if state.affInterface_ex:
+                    print("Interface event")
                     general.interfaceEvent.send("CAP_readings3", readingsResults, utime.ticks_ms())
                     state.affInterface_ex = 0
 
@@ -311,7 +312,6 @@ class OBCuart:
                 if (state.affLora_ex and state.loraObj.getLoraStatus()):
                     state.loraObj.sendReadings(self.getLoRaReading(state.readingsJSON))
                     state.affLora_ex = False
-
 
     def serialWrite(self):
         """
@@ -360,8 +360,10 @@ class OBCuart:
                 requireResponse = True
                 uart.write(UART_COMMAND_GRAVITY_VECTOR)
             if (state.affCons and state.consoleConfig[CONSCONFIG_LUMINANCE]=='1') or (state.affGraph and (CHART_LUMINANCE in state.chartsConfig)) or (state.affLora and loraOn):
-                requireResponse = True
-                uart.write(UART_COMMAND_LUMINANCE)
+                # NOT WORKING ATM
+                print("Luminance request ignored..")
+                #requireResponse = True
+                #uart.write(UART_COMMAND_LUMINANCE)
             if (state.affCons and state.consoleConfig[CONSCONFIG_GNSS]=='1') or (state.affLora and loraOn) or (state.affModeGnss):
                 requireResponse = True
                 uart.write(UART_COMMAND_GNSS)
