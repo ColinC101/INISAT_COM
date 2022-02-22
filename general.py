@@ -729,6 +729,7 @@ def cbTCons(args):
 def cbTGraph(args):
     """
     Change the graph updating interval
+    args[0] : the period (in ms) for graph updates (between 200 and 3600000 ms)
     """
     if len(args) != 1:
         return "Commande ERROR !"
@@ -736,13 +737,13 @@ def cbTGraph(args):
     try:
         periodValue = int(args[0])
     except:
-        return "Veuillez choisir une periode entre 5 et 3600 secondes !"
+        return "Veuillez choisir une periode entre 200 et 3600000 millisecondes !"
 
-    if (periodValue>4 and periodValue<3601):
-        state.chartsInterval = periodValue * 1000
+    if (periodValue>199 and periodValue<3600001):
+        state.chartsInterval = periodValue
         return "Config tgraph+"+args[0]+" recue .."
 
-    return "Veuillez choisir une periode entre 5 et 3600 secondes !"
+    return "Veuillez choisir une periode entre 200 et 3600000 secondes !"
 
 def cbRiRot(args):
     """
