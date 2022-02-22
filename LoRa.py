@@ -40,7 +40,6 @@ class LoraObject:
                 coding_rate=config.loraCodingRate, power_mode=config.loraPowerMode,
                 tx_iq=config.loraTxIQ, rx_iq=config.loraRxIQ,
                 public=config.loraPublicSync)
-        self.__loraStatus__ = True
         print("LoRa initialized")
 
 
