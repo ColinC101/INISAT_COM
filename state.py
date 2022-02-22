@@ -5,8 +5,7 @@ def init():
     """
     Init state variables
     """
-    global consoleConfig,autoTesting,consoleInterval,modeGnss,modeGnss_ex,camStatus,udpCom,testMag,ioctlObj,wifiObj,loraObj,gnssStartTime,chartsConfig,deMag,readingsJSON, affCons, affGraph, affInterface, affLora, affModeGnss, affCons_ex, affGraph_ex, affInterface_ex, affLora_ex,wifiLastBlink,loraLastBlink,lastOBCTime,lastUserTime,userConnected,lastLoRaTime,lastConsoleTime,lastChartsTime,chartsInterval,lastInterfaceTime,udpServ
-
+    global consoleConfig,autoTesting,consoleInterval,modeGnss,modeGnss_ex,camStatus,udpCom,testMag,ioctlObj,wifiObj,loraObj,gnssStartTime,chartsConfig,deMag,readingsJSON, affCons, affGraph, affInterface, affLora, affModeGnss, affCons_ex, affGraph_ex, affInterface_ex, affLora_ex,wifiLastBlink,loraLastBlink,lastOBCTime,lastUserTime,userConnected,lastLoRaTime,lastConsoleTime,lastChartsTime,chartsInterval,lastInterfaceTime,udpServ,curLang,lang,disconnectCb
     # Console configuration
     consoleConfig = aliases.CONSOLE_CONFIG_DISABLED.copy()
 
