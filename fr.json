@@ -4,5 +4,9 @@
 	"wlan_init": "WLAN initialisé.",
 	"wifi_ready": "WiFi prêt.",
 	"wifi_desinit": "WiFi désactivé.",
-	"con_devices": "Appareils connectés :"
+	"con_devices": "Appareils connectés :",
+	"update_lang": "Langue mise à jour",
+	"no_lang_exception": "Fichier de langue introuvable.",
+	"cb_lang": "Langue mise à jour.",
+	"lang_not_found": "Langue inexistante."
 }

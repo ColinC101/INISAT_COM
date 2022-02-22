@@ -122,10 +122,14 @@ def uartFlush():
     state.ioctlObj.getObject(Ioctl.KEY_UART_OBC).wait_tx_done(1000)
 
 def updateLang():
-    with open(state.curLang + ".json", 'r') as infile:
-        state.lang = json.loads(infile.read())
-        infile.close()
-        print(state.lang[update_lang))]
+    try:
+        with open(state.curLang + ".json", 'r') as infile:
+            state.lang = json.loads(infile.read())
+            infile.close()
+        print(state.lang["update_lang"])
+    except:
+        print(state.lang["no_lang_exception"])
+
 
 
 
@@ -855,6 +859,19 @@ def cbGraph6(args):
     state.chartsConfig[5] = args[0]
     print("Config graph6 mise à jour: " + args[0])
     return "Config graph6 mise à jour: " + args[0]
+
+def cbLang(args):
+    """
+    Set the interface language
+    """
+    langList = ["fr"]
+    reqLang = args["setLanguage"]
+    if reqLang in langList:
+        state.curLang = reqLang
+        updateLang()
+        return state.lang["cb_lang"]
+    else:
+        return state.lang["lang_not_found"]
 
 
 ########   SINGLE-CHAR UDP COMMANDS   ########
