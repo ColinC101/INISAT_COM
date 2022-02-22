@@ -27,6 +27,9 @@ state.init()
 
 print(config.wifiSsid)
 
+# Init language structure
+general.updateLang()
+
 # Init system
 general.initSystemHardware()
 
@@ -65,9 +68,9 @@ while True:
             state.userConnected = 0
             state.consoleConfig = aliases.CONSOLE_CONFIG_DISABLED.copy()
             state.chartsConfig = aliases.CHARTS_CONFIG_DISABLED.copy()
-            print("User disconnected from web interface")
+            print(state.lang["user_disconnected"])
             state.lastUserTime = utime.ticks_ms()
-        
+
         if ((utime.ticks_ms() - state.lastLoRaTime) > config.LORA_INTERVAL):
             # LoRa request
             state.affLora = True
@@ -79,7 +82,7 @@ while True:
             state.affCons = True
             state.affCons_ex = True
             state.lastConsoleTime = utime.ticks_ms()
-        
+
         if ((utime.ticks_ms() - state.lastChartsTime) > state.chartsInterval):
             # Charts request
             state.affGraph = True
@@ -98,18 +101,18 @@ while True:
                 state.affModeGnss = True
                 state.modeGnss_ex = True
             state.gnssStartTime = utime.ticks_ms()
-        
+
         if state.affCons or state.affInterface or state.affModeGnss or state.affGraph or state.affLora:
             uartOBC.serialWrite()
 
-        state.lastOBCTime = utime.ticks_ms() 
-    
+        state.lastOBCTime = utime.ticks_ms()
+
     uartOBC.serialRead()
 
     # Start degaussing (if required)
     if(state.deMag == 1):
         general.demag()
-    
+
     # Start a magneto-coupler test (if required)
     if(state.testMag > 0) and (state.testMag < 5):
         general.testMagneto(state.testMag)
