@@ -130,14 +130,15 @@ class OBCuart:
             elif (inChar == UART_COMMAND_EPS):
                 tmpData = self.__readSlot__()
                 tmpDataSplit = tmpData.split('#')
-                state.readingsJSON[JSON_EPS_VBAT] = tmpDataSplit[0]
-                state.readingsJSON[JSON_EPS_VIN] = tmpDataSplit[1]
-                state.readingsJSON[JSON_EPS_VOUT] = tmpDataSplit[2]
-                state.readingsJSON[JSON_EPS_ICHARGE] = tmpDataSplit[3]
-                state.readingsJSON[JSON_EPS_IIN] = tmpDataSplit[4]
-                state.readingsJSON[JSON_EPS_TBAT] = tmpDataSplit[5]
-                state.readingsJSON[JSON_EPS_CHARGE_STATUS] = tmpDataSplit[6]
-                self.readingsUDP[CONSCONFIG_EPS] = UART_COMMAND_EPS + tmpData + '@'
+                if (len(tmpDataSplit) == 7):
+                    state.readingsJSON[JSON_EPS_VBAT] = tmpDataSplit[0]
+                    state.readingsJSON[JSON_EPS_VIN] = tmpDataSplit[1]
+                    state.readingsJSON[JSON_EPS_VOUT] = tmpDataSplit[2]
+                    state.readingsJSON[JSON_EPS_ICHARGE] = tmpDataSplit[3]
+                    state.readingsJSON[JSON_EPS_IIN] = tmpDataSplit[4]
+                    state.readingsJSON[JSON_EPS_TBAT] = tmpDataSplit[5]
+                    state.readingsJSON[JSON_EPS_CHARGE_STATUS] = tmpDataSplit[6]
+                    self.readingsUDP[CONSCONFIG_EPS] = UART_COMMAND_EPS + tmpData + '@'
 
             elif (inChar == UART_COMMAND_TEMPERATURE):
                 tmpData = self.__readSlot__()
@@ -157,78 +158,87 @@ class OBCuart:
             elif (inChar == UART_COMMAND_EULER):
                 tmpData = self.__readSlot__()
                 tmpDataSplit = tmpData.split('#')
-                state.readingsJSON[JSON_EULER_ROLL] = tmpDataSplit[0]
-                state.readingsJSON[JSON_EULER_PITCH] = tmpDataSplit[1]
-                state.readingsJSON[JSON_EULER_YAW] = tmpDataSplit[2]
-                self.readingsUDP[CONSCONFIG_EULER] = UART_COMMAND_EULER + tmpData + '@'
+                if (len(tmpDataSplit) == 3):
+                    state.readingsJSON[JSON_EULER_ROLL] = tmpDataSplit[0]
+                    state.readingsJSON[JSON_EULER_PITCH] = tmpDataSplit[1]
+                    state.readingsJSON[JSON_EULER_YAW] = tmpDataSplit[2]
+                    self.readingsUDP[CONSCONFIG_EULER] = UART_COMMAND_EULER + tmpData + '@'
                 
             elif (inChar == UART_COMMAND_QUATERNION):
                 tmpData = self.__readSlot__()
                 tmpDataSplit = tmpData.split('#')
-                state.readingsJSON[JSON_QUATERNION_W] = tmpDataSplit[0]
-                state.readingsJSON[JSON_QUATERNION_X] = tmpDataSplit[1]
-                state.readingsJSON[JSON_QUATERNION_Y] = tmpDataSplit[2]
-                state.readingsJSON[JSON_QUATERNION_Z] = tmpDataSplit[3]
-                self.readingsUDP[CONSCONFIG_QUATERNION] = UART_COMMAND_QUATERNION + tmpData + '@'
+                if (len(tmpDataSplit) == 4):
+                    state.readingsJSON[JSON_QUATERNION_W] = tmpDataSplit[0]
+                    state.readingsJSON[JSON_QUATERNION_X] = tmpDataSplit[1]
+                    state.readingsJSON[JSON_QUATERNION_Y] = tmpDataSplit[2]
+                    state.readingsJSON[JSON_QUATERNION_Z] = tmpDataSplit[3]
+                    self.readingsUDP[CONSCONFIG_QUATERNION] = UART_COMMAND_QUATERNION + tmpData + '@'
                 
             elif (inChar == UART_COMMAND_ANGULAR_SPEED):
                 tmpData = self.__readSlot__()
                 tmpDataSplit = tmpData.split('#')
-                state.readingsJSON[JSON_ANGULARSPEED_X] = tmpDataSplit[0]
-                state.readingsJSON[JSON_ANGULARSPEED_Y] = tmpDataSplit[1]
-                state.readingsJSON[JSON_ANGULARSPEED_Z] = tmpDataSplit[2]
-                self.readingsUDP[CONSCONFIG_ANGULAR_SPEED] = UART_COMMAND_ANGULAR_SPEED + tmpData + '@'
+                if (len(tmpDataSplit) == 3):
+                    state.readingsJSON[JSON_ANGULARSPEED_X] = tmpDataSplit[0]
+                    state.readingsJSON[JSON_ANGULARSPEED_Y] = tmpDataSplit[1]
+                    state.readingsJSON[JSON_ANGULARSPEED_Z] = tmpDataSplit[2]
+                    self.readingsUDP[CONSCONFIG_ANGULAR_SPEED] = UART_COMMAND_ANGULAR_SPEED + tmpData + '@'
                 
             elif (inChar == UART_COMMAND_ACCELERATION):
                 tmpData = self.__readSlot__()
                 tmpDataSplit = tmpData.split('#')
-                state.readingsJSON[JSON_ACCELERATION_X] = tmpDataSplit[0]
-                state.readingsJSON[JSON_ACCELERATION_Y] = tmpDataSplit[1]
-                state.readingsJSON[JSON_ACCELERATION_Z] = tmpDataSplit[2]
-                self.readingsUDP[CONSCONFIG_ACCELERATION] = UART_COMMAND_ACCELERATION + tmpData + '@'
+                if (len(tmpDataSplit) == 3):
+                    state.readingsJSON[JSON_ACCELERATION_X] = tmpDataSplit[0]
+                    state.readingsJSON[JSON_ACCELERATION_Y] = tmpDataSplit[1]
+                    state.readingsJSON[JSON_ACCELERATION_Z] = tmpDataSplit[2]
+                    self.readingsUDP[CONSCONFIG_ACCELERATION] = UART_COMMAND_ACCELERATION + tmpData + '@'
                 
             elif (inChar == UART_COMMAND_MAGNETIC_FIELD):
                 tmpData = self.__readSlot__()
                 tmpDataSplit = tmpData.split('#')
-                state.readingsJSON[JSON_MAGNETICFIELD_X] = tmpDataSplit[0]
-                state.readingsJSON[JSON_MAGNETICFIELD_Y] = tmpDataSplit[1]
-                state.readingsJSON[JSON_MAGNETICFIELD_Z] = tmpDataSplit[2]
-                self.readingsUDP[CONSCONFIG_MAGNETIC_FIELD] = UART_COMMAND_MAGNETIC_FIELD + tmpData + '@'
+                if (len(tmpDataSplit) == 3):
+                    state.readingsJSON[JSON_MAGNETICFIELD_X] = tmpDataSplit[0]
+                    state.readingsJSON[JSON_MAGNETICFIELD_Y] = tmpDataSplit[1]
+                    state.readingsJSON[JSON_MAGNETICFIELD_Z] = tmpDataSplit[2]
+                    self.readingsUDP[CONSCONFIG_MAGNETIC_FIELD] = UART_COMMAND_MAGNETIC_FIELD + tmpData + '@'
                 
             elif (inChar == UART_COMMAND_LINEAR_ACCELERATION):
                 tmpData = self.__readSlot__()
                 tmpDataSplit = tmpData.split('#')
-                state.readingsJSON[JSON_LINEARACCELERATION_X] = tmpDataSplit[0]
-                state.readingsJSON[JSON_LINEARACCELERATION_Y] = tmpDataSplit[1]
-                state.readingsJSON[JSON_LINEARACCELERATION_Z] = tmpDataSplit[2]
-                self.readingsUDP[CONSCONFIG_LINEAR_ACCELERATION] = UART_COMMAND_LINEAR_ACCELERATION + tmpData + '@'
+                if (len(tmpDataSplit) == 3):
+                    state.readingsJSON[JSON_LINEARACCELERATION_X] = tmpDataSplit[0]
+                    state.readingsJSON[JSON_LINEARACCELERATION_Y] = tmpDataSplit[1]
+                    state.readingsJSON[JSON_LINEARACCELERATION_Z] = tmpDataSplit[2]
+                    self.readingsUDP[CONSCONFIG_LINEAR_ACCELERATION] = UART_COMMAND_LINEAR_ACCELERATION + tmpData + '@'
                 
             elif (inChar == UART_COMMAND_GRAVITY_VECTOR):
                 tmpData = self.__readSlot__()
                 tmpDataSplit = tmpData.split('#')
-                state.readingsJSON[JSON_GRAVITY_X] = tmpDataSplit[0]
-                state.readingsJSON[JSON_GRAVITY_Y] = tmpDataSplit[1]
-                state.readingsJSON[JSON_GRAVITY_Z] = tmpDataSplit[2]
-                self.readingsUDP[CONSCONFIG_GRAVITY] = UART_COMMAND_GRAVITY_VECTOR + tmpData + '@'
+                if (len(tmpDataSplit) == 3):
+                    state.readingsJSON[JSON_GRAVITY_X] = tmpDataSplit[0]
+                    state.readingsJSON[JSON_GRAVITY_Y] = tmpDataSplit[1]
+                    state.readingsJSON[JSON_GRAVITY_Z] = tmpDataSplit[2]
+                    self.readingsUDP[CONSCONFIG_GRAVITY] = UART_COMMAND_GRAVITY_VECTOR + tmpData + '@'
                 
             elif (inChar == UART_COMMAND_LUMINANCE):
                 tmpData = self.__readSlot__()
                 tmpDataSplit = tmpData.split('#')
-                state.readingsJSON[JSON_LUMINANCE_X] = tmpDataSplit[0]
-                state.readingsJSON[JSON_LUMINANCE_NEGX] = tmpDataSplit[1]
-                state.readingsJSON[JSON_LUMINANCE_Y] = tmpDataSplit[2]
-                state.readingsJSON[JSON_LUMINANCE_NEGY] = tmpDataSplit[3]
-                state.readingsJSON[JSON_LUMINANCE_Z] = tmpDataSplit[4]
-                self.readingsUDP[CONSCONFIG_LUMINANCE] = UART_COMMAND_LUMINANCE + tmpData + '@'
+                if (len(tmpDataSplit) == 5):
+                    state.readingsJSON[JSON_LUMINANCE_X] = tmpDataSplit[0]
+                    state.readingsJSON[JSON_LUMINANCE_NEGX] = tmpDataSplit[1]
+                    state.readingsJSON[JSON_LUMINANCE_Y] = tmpDataSplit[2]
+                    state.readingsJSON[JSON_LUMINANCE_NEGY] = tmpDataSplit[3]
+                    state.readingsJSON[JSON_LUMINANCE_Z] = tmpDataSplit[4]
+                    self.readingsUDP[CONSCONFIG_LUMINANCE] = UART_COMMAND_LUMINANCE + tmpData + '@'
                 
             elif (inChar == UART_COMMAND_GNSS):
                 tmpData = self.__readSlot__()
                 tmpDataSplit = tmpData.split('#')
-                state.readingsJSON[JSON_GNSS_UTC] = tmpDataSplit[0]
-                state.readingsJSON[JSON_GNSS_LATITUDE] = tmpDataSplit[1]
-                state.readingsJSON[JSON_GNSS_LONGITUDE] = tmpDataSplit[2]
-                state.readingsJSON[JSON_GNSS_NBSAT] = tmpDataSplit[3]
-                self.readingsUDP[CONSCONFIG_GNSS] = UART_COMMAND_GNSS + tmpData + '@'
+                if (len(tmpDataSplit) == 4):
+                    state.readingsJSON[JSON_GNSS_UTC] = tmpDataSplit[0]
+                    state.readingsJSON[JSON_GNSS_LATITUDE] = tmpDataSplit[1]
+                    state.readingsJSON[JSON_GNSS_LONGITUDE] = tmpDataSplit[2]
+                    state.readingsJSON[JSON_GNSS_NBSAT] = tmpDataSplit[3]
+                    self.readingsUDP[CONSCONFIG_GNSS] = UART_COMMAND_GNSS + tmpData + '@'
                 
             elif (inChar == UART_COMMAND_GNSS_NO_DATA):
                 tmpData = self.__readSlot__()
