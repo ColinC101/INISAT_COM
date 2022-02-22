@@ -57,16 +57,30 @@ class OBCuart:
 
         return json_ext.convertJSON(pReadings,totalFields,[])
 
+    def getConsoleReading(self,pReadings):
+        """
+        Prepare the string containing console data according to the current
+        consConfig
+        """
+        requiredFields = []
+        for idx,val in enumerate(state.consoleConfig):
+            if val=="1":
+                requiredFields.extend(FIELD_CFG[idx])
+
+        return json_ext.convertJSON(pReadings,requiredFields,[])
+
     def getGraphReading(self,pReadings):
         """
         Prepares the string containing charts data, which will be sent to the
         browser's EventSource
         pReadings: the dictionary of data read from OBC
         """
-        excludedFields = [JSON_EPS_VIN,JSON_EPS_VOUT,JSON_EPS_IIN,JSON_EPS_CHARGE_STATUS]
-        totalFields = list(map(lambda x: "var"+str(x),range(1,38))) # var37 is the last var
+        requiredFields = [] 
+        for val in enumerate(state.chartsConfig):
+            if val != "0":
+                requiredFields.extend(FIELD_CFG[CHART_MAPPING[val]])
 
-        return json_ext.convertJSON(pReadings,totalFields,excludedFields)
+        return json_ext.convertJSON(pReadings,requiredFields,[])
     def serialRead(self):
         """
         Reads the command passed by the UART link and saves the data.
@@ -286,7 +300,7 @@ class OBCuart:
 
                     # Sending data to the console
                     if state.affCons_ex:
-                        general.systemEvents.send(EVENT_READING_CONSOLE,readingsResults, utime.ticks_ms())
+                        general.systemEvents.send(EVENT_READING_CONSOLE,self.getConsoleReading(readingsResults), utime.ticks_ms())
                         print("Event 'CAP_readings' sent")
                         # Sending the data through UDP link too, only if needed
                         if (state.udpCom):

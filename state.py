@@ -1,4 +1,5 @@
 import aliases
+import config
 
 def init():
     """
@@ -97,7 +98,7 @@ def init():
     udpServ = None
 
     #Current interface language
-    curLang = DEFAULT_LANG
+    curLang = config.DEFAULT_LANG
 
     #Current language structure
     lang = None
