@@ -114,7 +114,7 @@ class OBCuart:
                 testsResults = json.dumps(autotestData)
 
                 # Sending the data to the web interface
-                general.autotestEvent.send("TEST_readings",testsResults, utime.ticks_ms())
+                general.systemEvents.send(EVENT_READING_AUTOTEST,testsResults, utime.ticks_ms())
                 # Sending the data through UDP, only if needed
                 if (state.udpCom):
                     replyBuffer = "A"
@@ -286,7 +286,7 @@ class OBCuart:
 
                     # Sending data to the console
                     if state.affCons_ex:
-                        general.consoleEvent.send("CAP_readings",readingsResults, utime.ticks_ms())
+                        general.systemEvents.send(EVENT_READING_CONSOLE,readingsResults, utime.ticks_ms())
                         print("Event 'CAP_readings' sent")
                         # Sending the data through UDP link too, only if needed
                         if (state.udpCom):
@@ -300,7 +300,7 @@ class OBCuart:
                     # Sending data to the charts
                     if state.affGraph_ex:
                         print("Graph event")
-                        general.graphEvent.send("CAP_readings2",self.getGraphReading(state.readingsJSON), utime.ticks_ms())
+                        general.systemEvents.send(EVENT_READING_GRAPH,self.getGraphReading(state.readingsJSON), utime.ticks_ms())
                         state.affGraph_ex = 0
                     else:
                         print("No need to aff graph")
@@ -308,7 +308,7 @@ class OBCuart:
                 # Sending data to the web interface
                 if state.affInterface_ex:
                     print("Interface event")
-                    general.interfaceEvent.send("CAP_readings3", readingsResults, utime.ticks_ms())
+                    general.systemEvents.send(EVENT_READING_INTERFACE, readingsResults, utime.ticks_ms())
                     state.affInterface_ex = 0
 
                 # Saving GNSS data to a text file

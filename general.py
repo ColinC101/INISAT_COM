@@ -16,11 +16,8 @@ import json
 
 
 # Events for asynchronous communication with the web interface
-consoleEvent = EventSource("consoleEvent")
-graphEvent = EventSource("graphEvent")
-interfaceEvent = EventSource("interfaceEvent")
-autotestEvent = EventSource("autotestEvent")
-demagEvent = EventSource("demagEvent")
+
+systemEvents = EventSource("events")
 
 # Mapping between rotation direction command and pin value
 rotationDirMap = {"h":0,"a":1,"s":-1}
@@ -1049,7 +1046,7 @@ def testMagneto(tstIdx):
                 utime.sleep_ms(selectedP)
 
     utime.sleep_ms(100)
-    demagEvent.send("fct_fin", aliases.MAGNETO_TEST_FIN, utime.ticks_ms())
+    systemEvents.send(aliases.EVENT_DEMAG_FIN, aliases.MAGNETO_TEST_FIN, utime.ticks_ms())
 
     utime.sleep_ms(100)
     state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1.0)
@@ -1059,10 +1056,10 @@ def testMagneto(tstIdx):
 
     # Re-send the event to make sure it has been received by the browser
     utime.sleep_ms(200)
-    demagEvent.send("fct_fin", aliases.MAGNETO_TEST_FIN, utime.ticks_ms())
+    systemEvents.send(aliases.EVENT_DEMAG_FIN, aliases.MAGNETO_TEST_FIN, utime.ticks_ms())
 
     utime.sleep_ms(100)
-    demagEvent.send("fct_fin", aliases.MAGNETO_TEST_FIN, utime.ticks_ms())
+    systemEvents.send(aliases.EVENT_DEMAG_FIN, aliases.MAGNETO_TEST_FIN, utime.ticks_ms())
 
     utime.sleep_ms(100)
     state.udpServ.sendToLastRemote("Test fini.\r\n")
@@ -1118,7 +1115,7 @@ def demag():
     utime.sleep_ms(100)
     state.deMag = 0
     utime.sleep_ms(200)
-    demagEvent.send("fct_fin", aliases.MAGNETO_DEMAG_FIN, utime.ticks_ms())
+    systemEvents.send(aliases.EVENT_DEMAG_FIN, aliases.MAGNETO_DEMAG_FIN, utime.ticks_ms())
     utime.sleep_ms(200)
 
     state.ioctlObj.getObject(Ioctl.KEY_PWM_X).duty_cycle(1.0)
@@ -1126,7 +1123,7 @@ def demag():
     utime.sleep_ms(100)
     state.ioctlObj.getObject(Ioctl.KEY_PWM_Y).duty_cycle(1.0)
     utime.sleep_ms(100)
-    demagEvent.send("fct_fin", aliases.MAGNETO_DEMAG_FIN, utime.ticks_ms())
+    systemEvents.send(aliases.EVENT_DEMAG_FIN, aliases.MAGNETO_DEMAG_FIN, utime.ticks_ms())
     utime.sleep_ms(100)
 
     state.udpServ.sendToLastRemote(" .. Demagnetisation Finie\r\n")
@@ -1162,9 +1159,7 @@ cbArgList = {"tcons":cbTCons,"rirot":cbRiRot,"mgrot":cbMgRot}
 
 cbSingleCharList = {"t":cbSingleT,"r":cbSingleR,"m":cbSingleM}
 
-eventList = {"events": consoleEvent, "events2": graphEvent,
-             "events3": interfaceEvent, "events4": autotestEvent,
-             "events5": demagEvent}
+eventList = {"events": systemEvents}
 
 
 

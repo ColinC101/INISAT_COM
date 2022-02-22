@@ -216,3 +216,12 @@ CHART_GRAVITY,CHART_LUMINANCE]
 #######################################
 MAGNETO_TEST_FIN = "B"
 MAGNETO_DEMAG_FIN = "A"
+
+#######################################
+############  SYSTEM EVENTS ###########
+#######################################
+EVENT_READING_CONSOLE = "CAP_reading_cons"
+EVENT_READING_GRAPH = "CAP_reading_graph"
+EVENT_READING_INTERFACE = "CAP_reading_index"
+EVENT_READING_AUTOTEST = "AUTOTEST_reading"
+EVENT_DEMAG_FIN = "DEMAG_fin"
