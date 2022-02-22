@@ -651,7 +651,7 @@ def cbOuvPage():
     """
     Init the configuration
     """
-
+    state.disconnectCb = False
     state.userConnected = 1
     state.lastUserTime = utime.ticks_ms()
     state.chartsConfig = aliases.CHARTS_CONFIG_DISABLED.copy()
@@ -675,6 +675,13 @@ def cbOuvPage():
     initParams["consf"] = "".join(state.consoleConfig)
     print("Config initiale transmise")
     return json.dumps(initParams)
+
+def cbStopTCP():
+    """
+    Disconnect the TCP client
+    """
+    state.disconnectCb = True
+    return "Demande de déconnexion TCP"
 
 
 ########   TCP/UDP COMMANDS WITH ARGS   ########
@@ -817,7 +824,7 @@ def cbConsGraph(args):
     if (not "n" in args) or (not "choix" in args):
         return "Command ERROR!"
 
-    graphID = 0    
+    graphID = 0
     graphSel = args["choix"]
     if not graphSel in aliases.CHARTS_ACCEPTED_VALUES:
         return "Command error: value '"+graphSel+"' is invalid for graph selection"
@@ -1175,7 +1182,7 @@ cbList = {"none":cbNone,"stopudp":cbStopUDP,"beginudp":cbBeginUDP,"state":cbStat
 
 cbWebServer = {"ouvpage":cbOuvPage,"loraoff":cbLoRaOff,"loraon":cbLoRaOn,"camoff":cbCamOff,"camon":cbCamOn,
 "demag":cbDemagOn,"tst1":cbMagt1,"tst2":cbMagt2,"tst3":cbMagt3,"tst4":cbMagt4,"tststp":cbStopMgt,
-"autotest":cbAutoTest,"user":cbUser,"stopgnss":cbWebGNSSoff,"savegnss":cbWebGNSSsave}
+"autotest":cbAutoTest,"user":cbUser,"stopgnss":cbWebGNSSoff,"savegnss":cbWebGNSSsave, "deconnect": cbStopTCP}
 
 cbWebServerArg = {"startgnss":cbWebGNSSon,"t_console":cbTCons,"t_graph":cbTGraph,"ang_couple":cbAngCouple,"roue":cbRoue,
 "cons_config":cbConsConfig,"confgraph":cbConsGraph}

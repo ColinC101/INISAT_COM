@@ -28,6 +28,9 @@ def init():
     # Enable / Disable UDP com
     udpCom = False
 
+    # Callback for TCP connection closure
+    disconnectCb = False
+
     # Active magneto-coupler test (when set to 1,2,3 or 4)
     testMag = 0
 

@@ -63,7 +63,7 @@ while True:
     if (utime.ticks_ms() - state.lastOBCTime) > config.OBC_INTERVAL:
         # OBC requests can be done here
 
-        if ((utime.ticks_ms() - state.lastUserTime) > config.USER_SIGNALING_INTERVAL) and (state.udpCom ==False):
+        if (state.disconnectCb) and (not state.udpCom):
             # Web interface user is diconnected
             state.userConnected = 0
             state.consoleConfig = aliases.CONSOLE_CONFIG_DISABLED.copy()
