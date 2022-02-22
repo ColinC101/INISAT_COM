@@ -189,7 +189,7 @@ CONSOLE_CONFIG_ENABLED = ["1","1","1","1","1","1","1","1","1","1","1","1","1","1
 #######################################
 
 # General aliases for setup
-CHARTS_CONFIG_DISABLED = ["0","0","0","0","0","0"]
+CHARTS_CONFIG_DISABLED = ["0","0","0","0","0","0","0","0","0","0","0","0","0","0"]
 
 # Chart types
 CHART_DISABLED = '0'
