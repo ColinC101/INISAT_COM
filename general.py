@@ -239,10 +239,10 @@ def cbWebGNSSon(arg):
     Enable GNSS (for web interface)
     @arg arg(str) : the DateTime of next GNSS collection
     """
-    if len(arg) != 1:
+    if not "choix" in arg:
         return "Command ERROR!"
 
-    dateTime = arg[0]
+    dateTime = arg["choix"]
     state.modeGnss = aliases.MODE_GNSS_RUNNING
     state.gnssStartTime = utime.ticks_ms()
     uartFlush()
@@ -674,11 +674,11 @@ def cbAngCouple(args):
     """
     Change the satellite angle with magneto-couplers (for web interface)
     """
-    if len(args) != 1:
+    if not "choix" in args:
         return "Command ERROR !"
-    magnetoRotate(float(args[0]))
+    magnetoRotate(float(args["choix"]))
 
-    return "Commande lancée pour : " + args[0] + "°."
+    return "Commande lancée pour : " + args["choix"] + "°."
 
 def cbRoue(args):
     """
@@ -686,10 +686,10 @@ def cbRoue(args):
     @args (list of string): should contain 1 string with the following format : '(a|h|s)intvalue'
     such that 0<=intvalue<=100
     """
-    if len(args) != 1:
+    if not "choix" in args:
         return "Command ERROR !"
 
-    dirSpeed = args[0]
+    dirSpeed = args["choix"]
 
     if len(dirSpeed) == 0:
         return "Command ERROR !"
@@ -712,36 +712,36 @@ def cbTCons(args):
     """
     Change the console updating interval
     """
-    if len(args) != 1:
+    if not "choix" in args:
         return "Commande ERROR !"
 
     try:
-        periodValue = int(args[0])
+        periodValue = int(args["choix"])
     except:
         return "Veuillez choisir une periode entre 5 et 3600 secondes !"
 
     if (periodValue>4 and periodValue<3601):
         state.consoleInterval = periodValue * 1000
-        return "Config tcons+"+args[0]+" recue .."
+        return "Config tcons+"+args["choix"]+" recue .."
 
     return "Veuillez choisir une periode entre 5 et 3600 secondes !"
 
 def cbTGraph(args):
     """
     Change the graph updating interval
-    args[0] : the period (in ms) for graph updates (between 200 and 3600000 ms)
+    args["choix"] : the period (in ms) for graph updates (between 200 and 3600000 ms)
     """
-    if len(args) != 1:
+    if not "choix" in args:
         return "Commande ERROR !"
 
     try:
-        periodValue = int(args[0])
+        periodValue = int(args["choix"])
     except:
         return "Veuillez choisir une periode entre 200 et 3600000 millisecondes !"
 
     if (periodValue>199 and periodValue<3600001):
         state.chartsInterval = periodValue
-        return "Config tgraph+"+args[0]+" recue .."
+        return "Config tgraph+"+args["choix"]+" recue .."
 
     return "Veuillez choisir une periode entre 200 et 3600000 secondes !"
 
@@ -793,63 +793,33 @@ def cbConsConfig(args):
     """
     Update the console configuration
     """
-    state.consoleConfig = list(args[0])
-    print("Config console mise à jour: " + args[0])
-    return "Config console mise à jour: " + args[0]
+    if not "choix" in args:
+        return "Command error !"
 
-def cbGraph1(args):
-    """
-    Set the Graph 1 configuration
-    """
-    state.chartsConfig[0] = args[0]
-    print("Config graph1 mise à jour: " + args[0])
-    return "Config graph1 mise à jour: " + args[0]
+    state.consoleConfig = list(args["choix"])
+    print("Config console mise à jour: " + args["choix"])
+    return "Config console mise à jour: " + args["choix"]
 
-
-def cbGraph2(args):
+def cbConsGraph(args):
     """
-    Set the Graph 2 configuration
+    Set graph configuration
+    args["n"] : the ID of the graph that is configured
+    args["choix"] : the selected configuration
     """
-    state.chartsConfig[1] = args[0]
-    print("Config graph2 mise à jour: " + args[0])
-    return "Config graph2 mise à jour: " + args[0]
+    if (not "n" in args) or (not "choix" in args):
+        return "Command ERROR!"
 
+    graphID = 0    
+    graphSel = args["choix"]
+    if not graphSel in aliases.CHARTS_ACCEPTED_VALUES:
+        return "Command error: value '"+graphSel+"' is invalid for graph selection"
 
-def cbGraph3(args):
-    """
-    Set the Graph 3 configuration
-    """
-    state.chartsConfig[2] = args[0]
-    print("Config graph3 mise à jour: " + args[0])
-    return "Config graph3 mise à jour: " + args[0]
-
-
-def cbGraph4(args):
-    """
-    Set the Graph 4 configuration
-    """
-    state.chartsConfig[3] = args[0]
-    print("Config graph4 mise à jour: " + args[0])
-    return "Config graph4 mise à jour: " + args[0]
-
-
-def cbGraph5(args):
-    """
-    Set the Graph 5 configuration
-    """
-    state.chartsConfig[4] = args[0]
-    print("Config graph5 mise à jour: " + args[0])
-    return "Config graph5 mise à jour: " + args[0]
-
-
-def cbGraph6(args):
-    """
-    Set the Graph 6 configuration
-    """
-    state.chartsConfig[5] = args[0]
-    print("Config graph6 mise à jour: " + args[0])
-    return "Config graph6 mise à jour: " + args[0]
-
+    try:
+        graphID = int(args["n"])
+        state.chartsConfig[graphID] = graphSel
+    except:
+        return "Command error: invalid value for 'n'"
+    return "Config graph"+str(graphID)+" mise à jour: "+graphSel
 
 ########   SINGLE-CHAR UDP COMMANDS   ########
 
@@ -1186,8 +1156,7 @@ cbWebServer = {"ouvpage":cbOuvPage,"loraoff":cbLoRaOff,"loraon":cbLoRaOn,"camoff
 "autotest":cbAutoTest,"user":cbUser,"stopgnss":cbWebGNSSoff,"savegnss":cbWebGNSSsave} 
 
 cbWebServerArg = {"startgnss":cbWebGNSSon,"t_console":cbTCons,"t_graph":cbTGraph,"ang_couple":cbAngCouple,"roue":cbRoue,
-"cons_config":cbConsConfig,"configgraph1":cbGraph1,"configgraph2":cbGraph2,"configgraph3":cbGraph3,
-"configgraph4":cbGraph4,"configgraph5":cbGraph5,"configgraph6":cbGraph6}
+"cons_config":cbConsConfig,"confgraph":cbConsGraph}
 
 cbArgList = {"tcons":cbTCons,"rirot":cbRiRot,"mgrot":cbMgRot}
 

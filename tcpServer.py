@@ -76,12 +76,12 @@ class TcpServer:
         else:
             #Get the requested ressource
             requestContent = "index.html" if splitRequest[1]=="/" else splitRequest[1][1:]
-            requestParams = []
+            requestParams = {}
             if "?" in requestContent: #If request has parameters
                 splitRequestContent = requestContent.split("?")
                 requestContent = splitRequestContent[0]
                 for i in splitRequestContent[1].split("&"):
-                    requestParams.append(i.split("=")[1])
+                    requestParams[i.split("=")[0]] = i.split("=")[1]
 
             #Check the type of the request
 

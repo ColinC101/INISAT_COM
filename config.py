@@ -126,7 +126,7 @@ UDP_PORT = 9991
 ################################################################
 
 # OBC interval for requests
-OBC_INTERVAL = 1000
+OBC_INTERVAL = 200
 
 # 5min30, time window for connected user (with '/ouvPage' or '/user' request)
 USER_SIGNALING_INTERVAL = 330000 
