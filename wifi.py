@@ -21,7 +21,7 @@ class WifiObject:
         Parameters (mode, ssid, auth) can be modified in config.py file
         """
         print(state.lang["wifi_init"])
-        self.wlan.init(mode=config.wifiMode, ssid=config.wifiSsid, auth=config.wifiAuth)
+        self.wlan.init(mode=config.wifiMode, ssid=config.wifiSsid, auth=config.wifiAuth, antenna=config.wifiAntenna)
         print(state.lang["wlan_init"])
         # Config in AP mode, with DHCP auto-negociation
         self.wlan.ifconfig(id=1,config=(config.localIP,config.localMask,config.localIP,config.localDNS))

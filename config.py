@@ -70,7 +70,8 @@ wifiAuth=(WLAN.WPA2, "123456789")
 wifiChannel = 1
 
 # Select between integrated and external antenna (WLAN.EXT_ANT)
-wifiAntenna = WLAN.INT_ANT
+wifiAntenna = WLAN.INT_ANT # Internal antenna
+# wifiAntenna = WLAN.EXT_ANT # External antenna
 
 # Bandwith to use for WiFi, 20MHz or 40MHz
 # wifiBandwidth = WLAN.HT40
